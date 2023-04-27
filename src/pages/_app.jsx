@@ -23,11 +23,12 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         {router.pathname === '/' ? (
-          <title>Protocol API Reference</title>
+          <title>Reclaim the Stack Documentation</title>
         ) : (
-          <title>{`${pageProps.title} - Protocol API Reference`}</title>
+          <title>{`${pageProps.title} - Reclaim the Stack Documentation`}</title>
         )}
         <meta name="description" content={pageProps.description} />
+        <link href="https://fonts.cdnfonts.com/css/matiz" rel="stylesheet" />
       </Head>
       <MDXProvider components={mdxComponents}>
         <Layout {...pageProps}>

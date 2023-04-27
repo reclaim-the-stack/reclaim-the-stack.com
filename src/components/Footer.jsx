@@ -198,16 +198,13 @@ function SmallPrint() {
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-stone-900/5 pt-8 dark:border-white/5 sm:flex-row">
       <p className="text-xs text-stone-600 dark:text-stone-400">
-        &copy; Copyright {new Date().getFullYear()}. All rights reserved.
+        &copy; Copyright. All rights reserved.
       </p>
       <div className="flex gap-4">
-        <SocialLink href="#" icon={TwitterIcon}>
-          Follow us on Twitter
-        </SocialLink>
-        <SocialLink href="#" icon={GitHubIcon}>
+        <SocialLink href="https://github.com/reclaim-the-stack" icon={GitHubIcon}>
           Follow us on GitHub
         </SocialLink>
-        <SocialLink href="#" icon={DiscordIcon}>
+        <SocialLink href="https://discord.gg/v23eA4FMPC" icon={DiscordIcon}>
           Join our Discord server
         </SocialLink>
       </div>

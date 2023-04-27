@@ -1,5 +1,5 @@
 export function Logo(props) {
   return (
-    <div {...props} className="w-full flex justify-center mt-4"><img src="/reclaim-the-stack.png" width="150" /></div>
+    <h1 {...props} style={{ fontFamily: "Matiz" }} className="mt-10 font-lg text-sunrise-500">RECLAIM THE STACK!</h1>
   )
 }
