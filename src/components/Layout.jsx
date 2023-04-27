@@ -7,6 +7,7 @@ import { Logo } from '@/components/Logo'
 import { Navigation } from '@/components/Navigation'
 import { Prose } from '@/components/Prose'
 import { SectionProvider } from '@/components/SectionProvider'
+import { HeroPattern } from '@/components/HeroPattern'
 
 export function Layout({ children, sections = [] }) {
   return (
@@ -17,8 +18,8 @@ export function Layout({ children, sections = [] }) {
           className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex"
         >
           <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:px-6 lg:pb-8 lg:pt-4 lg:dark:border-white/10 xl:w-80">
-            <div className="hidden lg:flex">
-              <Link href="/" aria-label="Home">
+            <div className="hidden lg:flex text-center">
+              <Link href="/" className="w-full" aria-label="Home">
                 <Logo className="h-6" />
               </Link>
             </div>
@@ -28,7 +29,10 @@ export function Layout({ children, sections = [] }) {
         </motion.header>
         <div className="relative px-4 pt-14 sm:px-6 lg:px-8">
           <main className="py-16">
-            <Prose as="article">{children}</Prose>
+            <Prose as="article">
+              <HeroPattern />
+              {children}
+            </Prose>
           </main>
           <Footer />
         </div>

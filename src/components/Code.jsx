@@ -62,7 +62,7 @@ function CopyButton({ code }) {
       className={clsx(
         'group/button absolute right-4 top-3.5 overflow-hidden rounded-full py-1 pl-2 pr-3 text-2xs font-medium opacity-0 backdrop-blur transition focus:opacity-100 group-hover:opacity-100',
         copied
-          ? 'bg-emerald-400/10 ring-1 ring-inset ring-emerald-400/20'
+          ? 'bg-sunrise-400/10 ring-1 ring-inset ring-sunrise-400/20'
           : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5'
       )}
       onClick={() => {
@@ -74,17 +74,17 @@ function CopyButton({ code }) {
       <span
         aria-hidden={copied}
         className={clsx(
-          'pointer-events-none flex items-center gap-0.5 text-zinc-400 transition duration-300',
+          'pointer-events-none flex items-center gap-0.5 text-stone-400 transition duration-300',
           copied && '-translate-y-1.5 opacity-0'
         )}
       >
-        <ClipboardIcon className="h-5 w-5 fill-zinc-500/20 stroke-zinc-500 transition-colors group-hover/button:stroke-zinc-400" />
+        <ClipboardIcon className="h-5 w-5 fill-stone-500/20 stroke-stone-500 transition-colors group-hover/button:stroke-stone-400" />
         Copy
       </span>
       <span
         aria-hidden={!copied}
         className={clsx(
-          'pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-400 transition duration-300',
+          'pointer-events-none absolute inset-0 flex items-center justify-center text-sunrise-400 transition duration-300',
           !copied && 'translate-y-1.5 opacity-0'
         )}
       >
@@ -100,17 +100,17 @@ function CodePanelHeader({ tag, label }) {
   }
 
   return (
-    <div className="flex h-9 items-center gap-2 border-y border-b-white/7.5 border-t-transparent bg-white/2.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
+    <div className="flex h-9 items-center gap-2 border-y border-b-white/7.5 border-t-transparent bg-white/2.5 bg-stone-900 px-4 dark:border-b-white/5 dark:bg-white/1">
       {tag && (
         <div className="dark flex">
           <Tag variant="small">{tag}</Tag>
         </div>
       )}
       {tag && label && (
-        <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" />
+        <span className="h-0.5 w-0.5 rounded-full bg-stone-500" />
       )}
       {label && (
-        <span className="font-mono text-xs text-zinc-400">{label}</span>
+        <span className="font-mono text-xs text-stone-400">{label}</span>
       )}
     </div>
   )
@@ -141,7 +141,7 @@ function CodeGroupHeader({ title, children, selectedIndex }) {
   }
 
   return (
-    <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+    <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-stone-700 bg-stone-800 px-4 dark:border-stone-800 dark:bg-transparent">
       {title && (
         <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
           {title}
@@ -154,8 +154,8 @@ function CodeGroupHeader({ title, children, selectedIndex }) {
               className={clsx(
                 'border-b py-3 transition focus:[&:not(:focus-visible)]:outline-none',
                 childIndex === selectedIndex
-                  ? 'border-emerald-500 text-emerald-400'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-300'
+                  ? 'border-sunrise-500 text-sunrise-400'
+                  : 'border-transparent text-stone-400 hover:text-stone-300'
               )}
             >
               {getPanelTitle(child.props)}
@@ -265,7 +265,7 @@ export function CodeGroup({ children, title, ...props }) {
     <CodeGroupContext.Provider value={true}>
       <Container
         {...containerProps}
-        className="not-prose my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10"
+        className="not-prose my-6 overflow-hidden rounded-2xl bg-stone-900 shadow-md dark:ring-1 dark:ring-white/10"
       >
         <CodeGroupHeader title={title} {...headerProps}>
           {children}

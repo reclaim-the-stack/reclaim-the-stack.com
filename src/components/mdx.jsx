@@ -29,8 +29,8 @@ function InfoIcon(props) {
 
 export function Note({ children }) {
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 leading-6 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:theme(colors.emerald.300)] dark:[--tw-prose-links:theme(colors.white)]">
-      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
+    <div className="my-6 flex gap-2.5 rounded-2xl border border-sunrise-500/20 bg-sunrise-50/50 p-4 leading-6 text-sunrise-900 dark:border-sunrise-500/30 dark:bg-sunrise-500/5 dark:text-sunrise-200 dark:[--tw-prose-links-hover:theme(colors.sunrise.300)] dark:[--tw-prose-links:theme(colors.white)]">
+      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-sunrise-500 stroke-white dark:fill-sunrise-200/20 dark:stroke-sunrise-200" />
       <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {children}
       </div>
@@ -64,7 +64,7 @@ export function Properties({ children }) {
     <div className="my-6">
       <ul
         role="list"
-        className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
+        className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-stone-900/5 p-0 dark:divide-white/5"
       >
         {children}
       </ul>
@@ -81,7 +81,7 @@ export function Property({ name, type, children }) {
           <code>{name}</code>
         </dd>
         <dt className="sr-only">Type</dt>
-        <dd className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
+        <dd className="font-mono text-xs text-stone-400 dark:text-stone-500">
           {type}
         </dd>
         <dt className="sr-only">Description</dt>
