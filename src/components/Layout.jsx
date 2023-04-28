@@ -15,7 +15,7 @@ export function Layout({ children, sections = [] }) {
       <HeroPattern />
       <motion.header
         layoutScroll
-        className="lg:pointer-events-none lg:fixed lg:z-40 lg:flex lg:pointer-events-auto lg:block lg:overflow-y-auto"
+        className="lg:pointer-events-none lg:fixed lg:z-40 lg:flex lg:pointer-events-auto lg:block"
       >
         <Header />
       </motion.header>
@@ -23,7 +23,7 @@ export function Layout({ children, sections = [] }) {
       <div className="max-w-[70rem] mx-auto">
         <motion.div
           layoutScroll
-          className="hidden lg:mt-20 lg:block contents lg:fixed lg:z-40 lg:flex"
+          className="hidden inset-y-0 lg:overflow-y-auto lg:mt-20 lg:block contents lg:fixed lg:z-40 lg:flex"
         >
           <Navigation className="w-[18rem]" />
         </motion.div>

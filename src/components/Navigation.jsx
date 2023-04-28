@@ -185,25 +185,40 @@ function NavigationGroup({ group, className }) {
 
 export const navigation = [
   {
-    title: 'Guides',
+    title: 'Introduction',
     links: [
       { title: 'Introduction', href: '/' },
-      { title: 'Quickstart', href: '/quickstart' },
-      { title: 'SDKs', href: '/sdks' },
-      { title: 'Authentication', href: '/authentication' },
-      { title: 'Pagination', href: '/pagination' },
-      { title: 'Errors', href: '/errors' },
-      { title: 'Webhooks', href: '/webhooks' },
     ],
   },
   {
-    title: 'Resources',
+    title: 'Kubernetes Platform',
     links: [
-      { title: 'Contacts', href: '/contacts' },
-      { title: 'Conversations', href: '/conversations' },
-      { title: 'Messages', href: '/messages' },
-      { title: 'Groups', href: '/groups' },
-      { title: 'Attachments', href: '/attachments' },
+      { title: 'Introduction', href: '/kubernetes-platform' },
+      { title: 'Installation', href: '/platform-installation' },
+      { title: 'CLI Tool: k', href: '/cli-tool-k' },
+    ],
+  },
+  {
+    title: 'Platform Components',
+    links: [
+      { title: 'Gitops: ArgoCD', href: '/gitops-argocd' },
+      { title: 'Ingress: Cloudflared', href: '/ingress-cloudflared' },
+      { title: 'Postgresql', href: '/postgres-operator' },
+      { title: 'Redis', href: '/redis-operator' },
+      { title: 'Elastic Search', href: '/elastic-search-operator' },
+      { title: 'Secrets Management', href: '/secrets-management' },
+      { title: 'Persistent Storage', href: '/persistent-storage' },
+      { title: 'Monitoring', href: '/monitoring' },
+      { title: 'Log Aggregation', href: '/log-aggregation' },
+      { title: 'Service Mesh', href: '/service-mesh' },
+    ],
+  },
+  {
+    title: 'Talos Manager',
+    links: [
+      { title: 'Introduction', href: '/talos-manager' },
+      { title: 'Installation', href: '/talos-manager-installation' },
+      { title: 'Usage', href: '/talos-manager-usage' },
     ],
   },
 ]
