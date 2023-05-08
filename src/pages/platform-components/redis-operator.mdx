@@ -1,0 +1,32 @@
+# Redis: Spotahome's Redis Operator
+
+One thing we didn't anticipate when we started building our platform was that Redis would turn out to be one of the most annoying piece of software to manage. Redis has two approaches to solve high availability: Sentinel and Cluster. Cluster mode requires a minimum of 6 Redis server instances while the Sentinel approach requires 2 Redis servers and 3 Sentinel servers to handle failover.
+
+For Ruby on Rails applications where Sidekiq is commonly used, Cluster mode isn't supported, so we had to find an operator that supported Sentinel. At the time there was only one open source operator available for this: [Spotahome Redis Operator](https://github.com/spotahome/redis-operator), so that's the one we went with.
+
+### Pros
+
+- The only open source operator with Sentinel support (no longer true, see [Opstree's Redis Operator](https://github.com/OT-CONTAINER-KIT/redis-operator/pull/408))
+- Meets our minimum requirements to deploy highly available Redis clusters
+
+### Cons
+
+- Has a fundamental architectural issue in that it relies on a single Kubernetes StatefulSet per cluster to manage Replicas (see this [GitHub issue](https://github.com/spotahome/redis-operator/issues/565#issuecomment-1448677515))
+- No built in backup / restore system
+- Runs 3 sentinels per Redis deployment, could have used 3 sentinels for the entire Kubernetes cluster
+- Doesn't come with a proxy solution to easily use a single `REDIS_URL` (that said, once you have true Sentinel support client side you won't want to use the `REDIS_URL` approach any more)
+- Sparsely documented
+
+## Alternatives Considered
+
+### Redis Enterprise Operator
+
+Requires a paid license. Very enterprisey. Unclear if the custom HA model they offer is suitable to us or not. I tried asking a simple question in their sales chat and they ended up trying to call me every day for about a month (I never picked up).
+
+### OpsTree Redis Operator
+
+Only supported Redis Cluster for HA at the time of our evaluation. We would love to revisit this one at some point.
+
+### KubeDB
+
+See comments on the Postgres rundown.

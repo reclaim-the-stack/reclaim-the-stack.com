@@ -1,0 +1,41 @@
+# PostgreSQL: PGO
+
+Getting PostgreSQL right was a top priority when creating our stack. It is the database which hosts our most critical data so failure here wasn't an option. Luckily there are plenty of production ready Kubernetes operators available for Kubernetes. After looking at a bunch of them we settled on [PGO](https://github.com/CrunchyData/postgres-operator), aka. Crunchy Postgres Operator.
+
+### Pros
+
+- Crunchy is a highly trusted vendor (built by some of the same people who built Heroku Postgres)
+- One of the oldest and most evolved operators
+- It uses [PgBackRest](https://pgbackrest.org/) for physical backups which is crazy fast for backups and restores (eg. ~2.5 minutes to restore our production database compared to ~15 minutes using a logical backup via `pg_restore`)
+- Has a good reputation for handling fail overs correctly
+- Enforces backups (can be annoying as well but overall probably a good thing)
+- Provides native grafana dashboards (though we had to add some extra YAML config manually to get things working)
+- Has not given us any major surprises and been rock solid in daily use thus far
+- Can populate application `DATABASE_URL` ENV variables directly from its generated secrets instead of having to manually piece together user/password/host etc
+
+### Cons
+
+- Fairly bloated / unaesthetic YAML syntax
+- How to best use and configure `PgBackRest` isn't obvious
+- Initial imports for external databases result in massive WAL log bloat (unclear if this can be avoided by manual configuration or not)
+- No accessible community for support
+- Unclear open source license - we have the assurance of Crunchy's founder Craig Kerstiens that we don't have to worry about using it unless we're a Fortune 100 kind of company but it does ring some enterprise software alarm bells
+- No out of the box read only users or replica targeting network services (we add read only users via our platform templates though)
+- Average documentation
+- Some logs are not propagated to STDOUT, requiring add-on solutions to surface all logs
+
+## Alternatives Considered
+
+### Cloud Native Postgres
+Has an amazing community Slack, great documentation and beautiful convention over configuration based YAML syntax. It provides read only users and replica server network services out of the box. Also it prides itself in having a fully Kubernetes native operator model which does not rely on Patroni for cluster management.
+
+However we did run into some hitches when trying it out, some of which were acknowledged as known issues and subsequently fixed, some which made us uncertain. Also going back to pg_dump / pg_restore after seeing the magic of PgBackRest gave us pause.
+
+### Zalando Postgres Operator
+Similar to PGO this is also built by a company providing a big Postgres as a service business. An interesting feature is a web UI to visualize and manage clusters (this would likely not play well with our gitops approach though). Something that turned us off was that everything felt very much built around the organisational culture of Zalando. Eg. all postgres instances must be owned by “a team”. But this does not match our structure.
+
+### Stackgres
+We never got around to actually trying this out. Had some vocal fans on eg. Reddit. Main selling point is a bazillion extensions built in. Not as widely used as the alternatives.
+
+### KubeDB
+A major pro is that this operator covers all the databases we need. However it requires a paid license and we couldn’t get a clear read on its capabilities for all of the different databases. We tried it for one or two databases but it didn’t make a lasting impression on us.

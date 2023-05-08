@@ -1,0 +1,23 @@
+# Monitoring: kube-prometheus-stack
+
+The [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) is pretty much a de-facto standard for Kubernetes monitoring. It includes:
+
+- [Prometheus](https://prometheus.io/): an in-memory database for storing metrics
+- [Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/): a tool for sending metrics based alerts
+- [Grafana](https://grafana.com/): a dashboarding tool for visualizing metrics and logs.
+
+And a bunch of integrations with Kubernetes components.
+
+### Pros
+
+- Easy to get going
+- Well adopted
+- High development velocity
+- Supports a ton of things out of the box
+- Seems to work well
+
+### Cons
+
+- Hard to wrap head around, installs a lot of components which can end up feeling a bit like a black box
+- Do we actually want / need all of it?
+- Grafana doesn't always provide a user experience on par with commercial observability / log aggregation products

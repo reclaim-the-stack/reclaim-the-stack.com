@@ -1,0 +1,13 @@
+# Kubernetes Platform: Installation
+
+Fork our [get-started](https://github.com/reclaim-the-stack/get-started) repository and follow along the README instructions to install the Platform.
+
+If you plan to deploy the platform on [Hetzner](https://hetzner.com/) you might want to start by looking at our [Talos Manager documentation](/talos-manager) instead. Talos Manager is a web app we built specifically for bootstrapping Talos Linux based Kubernetes clusters on Hetzner.
+
+We also recorded a screencast stepping through the installation process which could be of help:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MnwemfEfEFw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+## Using a private GitHub repo
+
+The Get Started guide assumes using a public GitHub repository. For a production cluster you might want to use a private repository instead. The only difference is that you need to provide ArgoCD with credentials to access your private GitHub repository. How to do this is covered in the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories/).

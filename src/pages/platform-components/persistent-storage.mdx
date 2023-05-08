@@ -1,0 +1,46 @@
+# Persistent Storage
+
+There is an ocean of storage options available for Kubernetes. They are divided into two main categories: local and remote. Remote storage is usually provided by a cloud provider, and is accessed over the network. Local storage is usually provided by a local disk, and is accessed directly by the node. Local storage is faster, but it is not shared between nodes. Remote storage is slower, but is shared between nodes. Remote storage also tends to have higher availability and durability guarantees since it can be replicated across multiple nodes.
+
+For the Reclaim the Stack get-started platform we chose [Rancher Local Path Provisioner](https://github.com/rancher/local-path-provisioner) as the out of the box storage class since it works with local `talosctl cluster` on MacOS. But we also include the [OpenEBS Dynamic LocalPV Provisioner](https://github.com/openebs/dynamic-localpv-provisioner) as an option to be enabled for non virtualized Talos Linux deployments.
+
+Both of these are local storage solutions. All persistent volumes end up being stored on the local disk of the node that the pod is running on under `/opt/local-path-provisioner` or `/var/openebs/local` respectively.
+
+We went with these options since they are easy to install on any environment, are easy to reason about and don't have any performance overhead. Note that our main use case for persistent volumes is to store data for databases, which all provide their own replication and high availability guarantees. So we don't need to worry about another redundancy layer.
+
+That said, if you are deploying on Cloud, using a managed Kubernetes service, you should probably use the managed storage solution provided by the Cloud provider instead.
+
+### Pros
+
+- It just works
+
+### Cons
+
+- Seems unnecessarily bloated considering the limited functionality - it installs a bunch of controller pods and a daemonset on each node
+- When using Talos Linux you have to add some machine config to prepare the `/var/openebs` path on the host disk
+
+## Alternatives Considered
+
+### TopoLVM
+Another local storage option. This requires more fiddling to get installed properly. It has slightly decreased performance compared to raw local storage but also has optionality for volumes supporting snapshotting and true space awareness to avoid over-scheduling disk on the nodes.
+
+### OpenEBS Mayastor
+Recommended by Talos for simple storage needs. Supposedly faster compared to older alternatives. However, it was a highly immature project when we evaluated it. Many features were not supported, even basic things like support for automatic failover in case a node went down (ie. replicas were for durability only). Fairly complicated installation since you have to dedicate one CPU core and setup 1GB hugepages for it to function.
+
+### Ceph + Rook
+Seemed to be the most talked about option for networked storage. Common story is “really challenging to set up but solid once you succeed”. Comes with both block storage and object storage (ie. S3) out of the box. Not as performant as more modern solutions. Recommended by Talos team for more complicated storage needs.
+
+### Longhorn
+Praised as a simpler to install option compared to Ceph+Rook. Uncertain future after the SUSE acquisition of Rancher.
+
+### Robin
+Commercial alternative. Seems to have good performance. Has a community edition available for up to 10TB storage on up to 3 nodes. No pricing visible on their website.
+
+### Linstor
+Commercial alternative. Seems to have good performance. No pricing visible on their website.
+
+### Portworx
+Commercial alternative. Incredible performance. Incredibly expensive.
+
+### Vitastor
+Some Russian developer is making this. Impressive one man army kind of project. Supposedly has great performance. Unclear future and reliability.

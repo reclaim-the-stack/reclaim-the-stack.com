@@ -1,0 +1,26 @@
+# Ingress: Cloudflared
+
+In a typical Kubernetes cluster you will see an Ingress Controller provided by eg. [Nginx](https://github.com/kubernetes/ingress-nginx) or [Traefik](https://doc.traefik.io/traefik/providers/kubernetes-ingress/) being used. The ingress controller runs a web server and watches the Kubernetes API for Ingress resources. When it sees an Ingress resource it will configure the web server to route traffic to the backend services specified in the Ingress resource.
+
+However, for the Reclaim the Stack platform we are using [cloudflared](https://github.com/cloudflare/cloudflared) to route HTTP traffic into our cluster without a dedicated Ingress Controller. Cloudflared is a lightweight encrypted tunneling daemon that proxies requests through the Cloudflare network.
+
+### Pros
+
+- Secure: Don't have to open any ports
+- Simple: No need to mess about with LoadBalancers or SSL certificate managers
+- Perfect for environments like bare metal / home networks where Cloud LoadBalancers aren't a thing
+- Straightforward to get started if you're already using Cloudflare (FREE accounts included)
+- Integrates natively with Cloudflare Zero Trust Access (we used this to enable SSO via Google OAuth for all platform access)
+
+### Cons
+
+- You have to be OK with marrying Cloudflare
+- No native Kubernetes Ingress / ApiGateway controller meaning you can't use certain Kubernetes conventions
+- Replicas are used for high availability only, not load balancing
+- For load balancing you need to use Cloudflare's Load Balancer service which is a commercial product (Note: you're unlikely to need any load balancing unless you're doing multiple thousands of requests per second which is an order of magnitude more than we needed)
+- Cloudflared does not do any kind of balancing for outgoing requests to origins either (we solved this via [service mesh](/platform-components/service-mesh))
+- We saw some issues related to the default QUIC based protocol, after changing to http2 things have been stable
+
+## Alternatives considered
+
+Both **Nginx** and **Traefik** appear to be provide good ingress controllers. However figuring out how to expose these via a LoadBalancer on bare metal servers was something we didn't have time to investigate. At the end of the day, `cloudflared` fit our use-case pretty much perfectly since we were heavily invested in and happy with Cloudflare already.

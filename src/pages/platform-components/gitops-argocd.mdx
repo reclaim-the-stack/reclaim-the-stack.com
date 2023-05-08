@@ -1,0 +1,22 @@
+# Gitops: ArgoCD
+
+We use [ArgoCD](https://argo-cd.readthedocs.io/) to manage all Kubernetes resources. This implies that each cluster you deploy has a corresponding GitOps repository which acts as the source of truth for what should be deployed to it. As soon as you push a change to the repository (provided you have added the necessary repository webhook), ArgoCD will automatically reconsile any changes into the cluster.
+
+### Pros
+
+- Well adopted and easy to get started with
+- Ships with a web UI which is useful for reasoning about what is deployed as well as debugging issues
+- Decent documentation
+
+### Cons
+
+- The UI is not always easy to use, eg. readability of error messages isn't great and how to resolve stuck syncing not always obvious
+- The UI can end up stuck in a stale state, requiring a full page reload to get it to refresh
+- There are some challenges with how ArgoCD applies resources which can lead to unexpected diffs between git repo and cluster and require explicit ignore rules
+- [Automatic self-healing](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/#automatic-self-healing) sounded nice in theory but can bring down `etcd` in practice if you have other operators inside the cluster which are fighting over how a particular YAML should look like
+
+## Alternatives Considered
+
+[FluxCD](https://fluxcd.io/) is another Kubernetes GitOps tool. However, it did not have the same momentum going for it and seemed less mature than ArgoCD.
+
+We also considered just skipping GitOps altogether but the benefits of the GitOps outwheighed any challenges we found with using ArgoCD. Admittedly, most of the issues we ran into were due to our own lack of experience with ArgoCD and Kubernetes in general.

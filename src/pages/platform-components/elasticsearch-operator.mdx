@@ -1,0 +1,21 @@
+# Elasticsearch: Elastic Cloud Kubernetes
+
+Selecting a Kubernetes operator for Elasticsearch was relatively straight forward given that the Elastic team themselves provide a well made open source operator called [Elastic Cloud Kubernetes](https://www.elastic.co/elastic-cloud-kubernetes).
+
+### Pros
+
+- Created by the maintainers of Elasticsearch
+- Well documented
+- Seems stable
+- Easy to deploy connected Kibana instance when creating a cluster
+
+### Cons
+
+- No declarative backups (you can setup snapshot management via Kibana manually instead)
+- No out of the box possibility of single node clusters without ending up in “yellow” status (shows as "degraded" in ArgoCD)
+
+## Alternatives Considered
+
+### KubeDB
+
+See comments on the Postgres rundown.
