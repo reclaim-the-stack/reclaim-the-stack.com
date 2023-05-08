@@ -4,7 +4,6 @@ import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
 import { Button } from '@/components/Button'
-import { Logo } from '@/components/Logo'
 import {
   MobileNavigation,
   useIsInsideMobileNavigation,
