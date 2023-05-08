@@ -38,7 +38,7 @@ export const Header = forwardRef(function Header({ className }, ref) {
       ref={ref}
       className={clsx(
         className,
-        'w-screen top-0 z-50 items-center justify-between gap-12 px-4 transition pt-4 h-[68px] border-b border-sunrise-300/10 sm:px-6 lg:px-0 lg:z-30',
+        'w-screen top-0 z-50 items-center justify-between gap-12 px-4 transition pt-5 h-[73px] border-b border-sunrise-300/10 sm:px-6 lg:px-0 lg:z-30',
         !isInsideMobileNavigation &&
           'backdrop-blur-sm dark:backdrop-blur lg:left-72 xl:left-80',
         isInsideMobileNavigation
