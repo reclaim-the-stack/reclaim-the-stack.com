@@ -185,12 +185,6 @@ function NavigationGroup({ group, className }) {
 
 export const navigation = [
   {
-    title: 'Introduction',
-    links: [
-      { title: 'Introduction', href: '/' },
-    ],
-  },
-  {
     title: 'Kubernetes Platform',
     links: [
       { title: 'Introduction', href: '/kubernetes-platform' },

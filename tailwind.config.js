@@ -21,6 +21,9 @@ module.exports = {
     },
     typography: require('./typography'),
     extend: {
+      fontFamily: {
+        matiz: ['Matiz', 'sans-serif'],
+      },
       boxShadow: {
         glow: '0 0 4px rgb(0 0 0 / 0.1)',
       },
