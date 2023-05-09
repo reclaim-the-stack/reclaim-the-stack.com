@@ -187,9 +187,9 @@ export const navigation = [
   {
     title: 'Kubernetes Platform',
     links: [
-      { title: 'Introduction', href: '/kubernetes-platform' },
-      { title: 'Installation', href: '/kubernetes-platform-installation' },
-      { title: 'Usage', href: '/kubernetes-platform-usage' },
+      { title: 'Introduction', href: '/kubernetes-platform/introduction' },
+      { title: 'Installation', href: '/kubernetes-platform/installation' },
+      { title: 'Usage', href: '/kubernetes-platform/usage' },
     ],
   },
   {

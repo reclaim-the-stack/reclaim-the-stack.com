@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+
+Bundler.require
+
+Dotenv.load(".env.local")
+
+BASE_URL = ENV.fetch("BASE_URL")
+
+client = Algolia::Search::Client.create(ENV.fetch("NEXT_PUBLIC_DOCSEARCH_APP_ID"), ENV.fetch("ALGOLIA_ADMIN_KEY"))
+index = client.init_index(ENV.fetch("NEXT_PUBLIC_DOCSEARCH_INDEX_NAME"))
+
+objects = Dir.glob("out/**/*.html").flat_map do |html_file|
+  next if html_file == "out/404.html"
+  next if html_file == "out/index.html"
+
+  article_url = "#{BASE_URL}#{html_file.delete_prefix('out').delete_suffix('.html')}"
+  content = File.read(html_file)
+  dom = Nokogiri::HTML(content)
+  article = dom.at_css("article")
+
+  # Note on search result hierarchy:
+  # lvl0: non-clickable category (extracted from URL)
+  # lvl1: navigation link text (extracted from <nav>)
+  # lvl2: sub headers (extracted from article <h2>s)
+
+  # NOTE: Could consider traversing the DOM from the <a> tag in search of an <h2> containg the catgory instead
+  lvl0 = html_file.split("/")[1].split("-").map(&:capitalize).join(" ")
+  lvl1 = dom.at_css("nav [aria-current='page']").content
+
+  current_header = nil
+  current_anchor = nil
+  article.children.each_with_object([]) do |child, sections|
+    if child.name == "h1"
+      current_header = child
+      sections << {
+        objectID: "#{sections.length}-#{article_url}",
+        content: child.content,
+        type: "lvl1",
+        url: article_url,
+        hierarchy: {
+          lvl0: lvl0,
+          lvl1: lvl1,
+        },
+      }
+    elsif child.name == "h2"
+      current_header = child
+      current_anchor = "##{child.attr('id')}" if child.attr("id")
+
+      sections << {
+        objectID: "#{sections.length}-#{article_url}",
+        content: child.content,
+        type: "lvl2",
+        url: "#{article_url}#{current_anchor}",
+        hierarchy: {
+          lvl0: lvl0,
+          lvl1: lvl1,
+          lvl2: current_header.content,
+        }
+      }
+    else
+      sections.last[:content] += child.content
+    end
+  end
+end.compact
+
+puts "Indexing #{objects.size} objects..."
+
+index.replace_all_objects(objects)

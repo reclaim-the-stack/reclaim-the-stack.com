@@ -1,0 +1,35 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    algolia (2.3.1)
+      faraday (>= 0.15, < 3)
+      faraday-net_http_persistent (>= 0.15, < 3)
+      multi_json (~> 1.0)
+      net-http-persistent
+    connection_pool (2.4.0)
+    dotenv (2.8.1)
+    faraday (2.7.4)
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
+    faraday-net_http_persistent (2.1.0)
+      faraday (~> 2.5)
+      net-http-persistent (~> 4.0)
+    multi_json (1.15.0)
+    net-http-persistent (4.0.2)
+      connection_pool (~> 2.2)
+    nokogiri (1.14.3-arm64-darwin)
+      racc (~> 1.4)
+    racc (1.6.2)
+    ruby2_keywords (0.0.5)
+
+PLATFORMS
+  arm64-darwin-22
+
+DEPENDENCIES
+  algolia
+  dotenv
+  nokogiri
+
+BUNDLED WITH
+   2.4.6
