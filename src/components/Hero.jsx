@@ -13,7 +13,7 @@ export function Hero() {
 
       <HeroParagraph>We have now open sourced the entire stack, so you can do the same, but in a few days instead of 7 months. <strong className="dark:text-stone-100">It&apos;s time to Reclaim the Stack!</strong></HeroParagraph>
 
-      <Button className="mt-10 mr-5 text-lg" href="/kubernetes-platform">Read the Documentation</Button>
+      <Button className="mt-10 mr-5 text-lg" href="/kubernetes-platform/introduction">Read the Documentation</Button>
       <Button className="text-lg" variant="text" href="https://discord.gg/v23eA4FMPC">Join the Discord Server</Button>
     </div>
   )
