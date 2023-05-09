@@ -55,9 +55,10 @@ function useAutocomplete() {
                     query,
                     indexName: process.env.NEXT_PUBLIC_DOCSEARCH_INDEX_NAME,
                     params: {
+                      attributesToSnippet: ['content:10'],
                       hitsPerPage: 5,
                       highlightPreTag:
-                        '<mark class="underline bg-transparent text-sunrise-500">',
+                        '<mark class="bg-transparent text-sunrise-500">',
                       highlightPostTag: '</mark>',
                     },
                   },
@@ -90,12 +91,17 @@ function resolveResult(result) {
           )
           .pop()
 
-  return {
+  let html = {
     titleHtml: result._highlightResult.hierarchy[level].value,
+    snippetHtml: result._snippetResult.content.value,
     hierarchyHtml: hierarchy
       .slice(0, levels.indexOf(level))
       .map(([, { value }]) => value),
   }
+
+  console.log('resolveResult', html)
+
+  return html
 }
 
 function SearchIcon(props) {
@@ -153,13 +159,12 @@ function LoadingIcon(props) {
 
 function SearchResult({ result, resultIndex, autocomplete, collection }) {
   let id = useId()
-  let { titleHtml, hierarchyHtml } = resolveResult(result)
+  let { titleHtml, hierarchyHtml, snippetHtml } = resolveResult(result)
 
   return (
     <li
       className={clsx(
-        'group block cursor-default px-4 py-3 aria-selected:bg-stone-50 dark:aria-selected:bg-stone-800/50',
-        resultIndex > 0 && 'border-t border-stone-100 dark:border-stone-800'
+        'group block cursor-default px-4 py-3 border-black dark:border-white aria-selected:border-l-4 aria-selected:bg-stone-50 dark:aria-selected:bg-stone-800/50'
       )}
       aria-labelledby={`${id}-hierarchy ${id}-title`}
       {...autocomplete.getItemProps({
@@ -170,10 +175,29 @@ function SearchResult({ result, resultIndex, autocomplete, collection }) {
       <div
         id={`${id}-title`}
         aria-hidden="true"
-        className="text-sm font-medium text-stone-900 group-aria-selected:text-sunrise-500 dark:text-white"
-        dangerouslySetInnerHTML={{ __html: titleHtml }}
-      />
-      {hierarchyHtml.length > 0 && (
+        className="text-sm font-medium text-stone-900 dark:text-white"
+      >
+        {hierarchyHtml.map((item, itemIndex, items) => (
+          <Fragment key={itemIndex}>
+            <span className={itemIndex == 0 && 'text-xs text-stone-700 dark:text-stone-300'} dangerouslySetInnerHTML={{ __html: item }} />
+            <span
+              className='mx-2 text-stone-300 dark:text-stone-700'
+            >
+              /
+            </span>
+          </Fragment>
+        ))}
+        <span dangerouslySetInnerHTML={{ __html: titleHtml }} />
+      </div>
+      {snippetHtml && true && (
+        <div
+          id={`${id}-snippet`}
+          aria-hidden="true"
+          className="mt-1 text-sm text-stone-700 dark:text-stone-500"
+          dangerouslySetInnerHTML={{ __html: snippetHtml }}
+        />
+      )}
+      {hierarchyHtml.length > 0 && false && (
         <div
           id={`${id}-hierarchy`}
           aria-hidden="true"
