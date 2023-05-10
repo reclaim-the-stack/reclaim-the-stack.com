@@ -1,5 +1,12 @@
 # Elasticsearch: Elastic Cloud Kubernetes
 
+For Elasticsearch deployment management we use Elastic Cloud Kubernetes. A Kubernetes operator from the Elastic team themselves.
+
+Github: https://github.com/elastic/cloud-on-k8s<br />
+Documentation: https://www.elastic.co/guide/en/cloud-on-k8s/master/k8s-overview.html
+
+## Architecture Decision Record
+
 Selecting a Kubernetes operator for Elasticsearch was relatively straight forward given that the Elastic team themselves provide a well made open source operator called [Elastic Cloud Kubernetes](https://www.elastic.co/elastic-cloud-kubernetes).
 
 ### Pros
@@ -14,8 +21,84 @@ Selecting a Kubernetes operator for Elasticsearch was relatively straight forwar
 - No declarative backups (you can setup snapshot management via Kibana manually instead)
 - No out of the box possibility of single node clusters without ending up in “yellow” status (shows as "degraded" in ArgoCD)
 
-## Alternatives Considered
+### Alternatives Considered
 
-### KubeDB
+#### KubeDB
 
-See comments on the Postgres rundown.
+See comments on the PostgreSQL alternatives considered.
+
+## Creating a database
+
+In your DevOps repository, run `k generate resource <application-name> elasticsearch` to generate a new database resource. This will add an `Elasticsearch` template under `applications/<application-name>/templates` and output some Helm configuration for you to manually add into `applications/<application-name>/values.yaml`.
+
+You can inspect our default generator template here: https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/elasticsearch.yaml. By modifying this template in your own GitOps repository you can tweak the default configuration for all Elasticsearch clusters created with `k generate` in your cluster.
+
+## Connecting to a database
+
+### From inside Kubernetes
+
+Run `k elasticsearch:url <cluster-name>` to get a URL you can use to connect to elasticsearch inside Kubernetes.
+
+To provide an URL via ENV variable to an application you can add an entry in the following style to the `env` array in your application's `values.yaml`:
+
+```yaml
+env:
+  - name: ELASTICSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: <cluster-name>-es-elastic-user
+        key: elastic
+  - name: ELASTICSEARCH_URL
+    value: "http://elastic:$(ELASTICSEARCH_PASSWORD)@<cluster-name>-es-http:9200" }
+```
+
+Note: This make use of Kubernetes [Dependent Environment Variables](https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/) to interpolate the value of ELASTIC_SEARCHPASSWORD into the value of ELASTICSEARCH_URL.
+
+### From your local machine
+
+Run `k k port-forward <cluster-name>-es-http 9201:9200` to forward the Elasticsearch HTTP port to your local machine. You can then connect to Elasticsearch using `http://localhost:9201`.
+
+A more convenient way to interact towith Elasticsearch from your local machine is to use the developer console in Kibana instead. See [Connecting to Kibana](#connecting-to-kibana) below.
+
+## Connecting to Kibana
+
+When using our default template for Elasticsearch every Elasticsearch cluster gets a Kibana instance which can be used to monitor and manage the cluster.
+
+Run `k kibana <cluster-name>` and follow the instructions to connect to Kibana from your local machine.
+
+## Import an external database
+
+Our recommended way of migrating data from an external Elasticsearch cluster is to use snapshot restoration via Kibana.
+
+Note: In some cases it might make more sense to just re-generate your index data from source data from scratch inside of Kubernetes instead.
+
+### On the source cluster
+
+Add S3 client credentials to Elasticsearch's keystore. Depending on the provider this is done in different ways. On ElasticCloud there should be a "Security" section for each cluster where secrets can be added to the keystore (Note: NOT the same as the security section within Kibana).
+
+The keys should be named `s3.client.<client-name>.access_key` and `s3.client.<client-name>.secret_key`. Replace `<client-name>` with eg. `primary` - it's essentially a string that we need to keep track of and reference in later steps.
+
+Now open up Kibana -> Hamburger menu -> Stack Management -> Snapshot -> Repositories -> Register Repository. Select S3 and give it a name. In the Client field enter the string you used for `<client-name>` when you created the credentials. Use a bucket which the target cluster will be able to access as well. Use a unique base path which clearly identifies the source cluster. Verify the repository after saving, if you did the credentials part right you should now have a connected.
+
+Now create a snapshot policy from the Policies section. When your policy is created you can click an icon to immediately create your first snapshot.
+
+### On the target cluster
+
+Create a secret containing the credentials needed for accessing the same bucket used in the source cluster.
+
+```
+kubectl create secret generic <secret-name> --dry-run=client \
+  --from-literal=s3.client.default.access_key=<access-key>
+  --from-literal=s3.client.default.secret_key=<secret-key>
+  -o yaml | kubeseal -o yaml > applications/shared-secrets/<secret-name>.yaml
+```
+
+In the YAML for the `Elasticsearch` resource template set `secureSettings.secretName: <secret-name>`. Also ensure that the `repository-s3` plugin is added via `initContainer` (if you're using our default elasticsearch template this is done for you already).
+
+Now sign in to Kibana for the target cluster (eg. via `k kibana <application-name>`) and follow the same steps as you took on the source cluster to configure an S3 repository. If done correctly you should immediately see the snapshot you took in the source cluster. Restore it at will!
+
+## Security Considerations
+
+We disable self signed TLS certificates for both Elasticsearch and Kibana since worrying about man in the middle attacks on the private network seems unnecessary while adding complexity and performance overhead. Disabling TLS also allows connecting to Kibana locally without having to deal with certificate warnings.
+
+Feel free to modify `spec.http.tls` in the elasticserach generator template to your liking.

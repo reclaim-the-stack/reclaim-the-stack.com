@@ -2,6 +2,11 @@
 
 Getting PostgreSQL right was a top priority when creating our stack. It is the database which hosts our most critical data so failure here wasn't an option. Luckily there are plenty of production ready Kubernetes operators available for Kubernetes. After looking at a bunch of them we settled on [PGO](https://github.com/CrunchyData/postgres-operator), aka. Crunchy Postgres Operator.
 
+Github: https://github.com/CrunchyData/postgres-operator <br />
+Documentation: https://access.crunchydata.com/documentation/postgres-operator/latest
+
+## Architecture Decision Record
+
 ### Pros
 
 - Crunchy is a highly trusted vendor (built by some of the same people who built Heroku Postgres)
@@ -24,18 +29,110 @@ Getting PostgreSQL right was a top priority when creating our stack. It is the d
 - Average documentation
 - Some logs are not propagated to STDOUT, requiring add-on solutions to surface all logs
 
-## Alternatives Considered
+### Alternatives Considered
 
-### Cloud Native Postgres
+#### Cloud Native Postgres
+
 Has an amazing community Slack, great documentation and beautiful convention over configuration based YAML syntax. It provides read only users and replica server network services out of the box. Also it prides itself in having a fully Kubernetes native operator model which does not rely on Patroni for cluster management.
 
 However we did run into some hitches when trying it out, some of which were acknowledged as known issues and subsequently fixed, some which made us uncertain. Also going back to pg_dump / pg_restore after seeing the magic of PgBackRest gave us pause.
 
-### Zalando Postgres Operator
+#### Zalando Postgres Operator
+
 Similar to PGO this is also built by a company providing a big Postgres as a service business. An interesting feature is a web UI to visualize and manage clusters (this would likely not play well with our gitops approach though). Something that turned us off was that everything felt very much built around the organisational culture of Zalando. Eg. all postgres instances must be owned by “a team”. But this does not match our structure.
 
-### Stackgres
+#### Stackgres
+
 We never got around to actually trying this out. Had some vocal fans on eg. Reddit. Main selling point is a bazillion extensions built in. Not as widely used as the alternatives.
 
-### KubeDB
+#### KubeDB
+
 A major pro is that this operator covers all the databases we need. However it requires a paid license and we couldn’t get a clear read on its capabilities for all of the different databases. We tried it for one or two databases but it didn’t make a lasting impression on us.
+
+## Creating a database
+
+In your DevOps repository, run `k generate resource <application-name> postgres` to generate a new database resource. This will add a `PostgresCluster` template under `applications/<application-name>/templates` and output some Helm configurationn for you to manually add into `applications/<application-name>/values.yaml`.
+
+You can inspect our default generator template here: https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml. By modifying this template in your own GitOps repository you can tweak the default configuration for all Postgres clusters created with `k generate` in your cluster.
+
+## Connecting to a database
+
+### From inside Kubernetes
+
+Run `k pg:url <cluster-name>` to get a URL you can use to connect to a postgres cluster inside Kubernetes.
+
+To provide a URL via an ENV variable to an application you can add an entry in the following style to the `env` array in your application's `values.yaml`:
+
+```yaml
+env:
+  - name: DATABASE_URL
+    value:
+      valueFrom:
+        secretKeyRef:
+          name: <cluster-name>-pguser-<cluster-or-user-name>
+          key: uri
+```
+
+### From your local machine
+
+There are two ways to connect to databases inside of your Kubernetes cluster from your local machine.
+
+If all you need is a `psql` terminal use `k pg:psql <cluster-name>`.
+
+If you want to connect to your database using a GUI like [TablePlus](https://tableplus.com/), [Postico](https://eggerapps.at/postico2/) etc you can use `k pg:proxy` to start a proxy server. The proxy allows you to connect to Postgres clusters running inside of Kubernetes via local port `10000` and using the name of the Postgres cluster as the database name. The proxy will automagically forward your connection and handle authentication to the specified database.
+
+## Import an external database
+
+While it's possible to declaratively configure crunchy postgres clusters to import data using a few different strategies, first creating your postgres cluster and then manually importing a logical dump can be more straight forward and is the approach we are taking here.
+
+#### Step 1: Dump the remote database
+
+We will use `pg_dump` with `--format d` to create a directory format dump. This is oftentimes the fastest way to create a dump and also the fastest way to restore it since you can parallelize handling of your database tables across CPU threads via the `--jobs` argument (feel free to tweak this to a number according to the cores available on the Postgres database).
+
+Note: We are dumping and restoring from a shell inside of the Kubernetes cluster via `k playground` to minimize network latency. This implies that the node running `playground` needs to have enough ephemeral storage available to store the dump.
+
+```bash
+# open a shell in the kubernetes kluster
+k playground <node-name>
+
+mkdir dump
+time pg_dump \
+  --no-owner \
+  --no-privileges \
+  --verbose \
+  --jobs 16 \
+  --format d \
+  --file dump \
+  --host <host.com> \
+  --port <port> \
+  --username <username> \
+  --dbname <database-name>
+```
+
+#### Step 2: Import the database dump
+
+Now we can import the dump using `pg_restore`. We are assuming that you have created a crunchy postgres cluster using our default template where the name of the cluster, the user and the database all share the same name (feel free to tweak this as needed). You can get the password for your cluster by running `k pg:password <cluster-name>` on your local machine.
+
+```bash
+PG_CLUSTER=<cluster-name>
+
+time pg_restore \
+  --verbose \
+  --clean \
+  --no-acl \
+  --no-owner \
+  --format d \
+  --jobs 16 \
+  --host $PG_CLUSTER-primary.default.svc \
+  --username $PG_CLUSTER \
+  --dbname $PG_CLUSTER \
+  dump
+```
+
+## Configuring external S3 backups
+
+By default our PGO template will use local persistent volumes for backups and WAL replication. You might want to use external S3 based storage instead for enhanced durability and off site disaster recovery requirements.
+
+Backups are configured via `spec.backups.pgbackrest`. You can read about it in the [PGO backups documentation](https://access.crunchydata.com/documentation/postgres-operator/latest/tutorial/backups/). See the "Using S3" section for detals on how to configure S3 based backups.
+
+In our [default template](https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml) we have commented out some example S3 configuration. You can uncomment it and use that as a baseline for your own S3 configuration.

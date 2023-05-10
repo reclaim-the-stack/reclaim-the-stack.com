@@ -3,6 +3,7 @@ module.exports = ({ theme }) => ({
     css: {
       '--tw-prose-body': theme('colors.stone.700'),
       '--tw-prose-headings': theme('colors.stone.900'),
+      '--tw-prose-headings-dimmed': theme('colors.stone.800'),
       '--tw-prose-links': theme('colors.sunrise.500'),
       '--tw-prose-links-hover': theme('colors.sunrise.600'),
       '--tw-prose-links-underline': theme('colors.sunrise.500 / 0.3'),
@@ -21,6 +22,7 @@ module.exports = ({ theme }) => ({
 
       '--tw-prose-invert-body': theme('colors.stone.400'),
       '--tw-prose-invert-headings': theme('colors.white'),
+      '--tw-prose-invert-headings-dimmed': theme('colors.stone.100'),
       '--tw-prose-invert-links': theme('colors.sunrise.400'),
       '--tw-prose-invert-links-hover': theme('colors.sunrise.500'),
       '--tw-prose-invert-links-underline': theme('colors.sunrise.500 / 0.3'),
@@ -183,17 +185,25 @@ module.exports = ({ theme }) => ({
       h2: {
         color: 'var(--tw-prose-headings)',
         fontWeight: '600',
-        fontSize: theme('fontSize.lg')[0],
-        ...theme('fontSize.lg')[1],
-        marginTop: theme('spacing.16'),
-        marginBottom: theme('spacing.2'),
+        fontSize: theme('fontSize.xl')[0],
+        ...theme('fontSize.xl')[1],
+        marginTop: theme('spacing.12'),
+        marginBottom: theme('spacing.4'),
       },
       h3: {
         color: 'var(--tw-prose-headings)',
-        fontSize: theme('fontSize.base')[0],
-        ...theme('fontSize.base')[1],
+        fontSize: theme('fontSize.lg')[0],
+        ...theme('fontSize.lg')[1],
         fontWeight: '600',
         marginTop: theme('spacing.10'),
+        marginBottom: theme('spacing.6'),
+      },
+      h4: {
+        color: 'var(--tw-prose-headings)',
+        fontSize: theme('fontSize.sm')[0],
+        ...theme('fontSize.sm')[1],
+        fontWeight: '600',
+        marginTop: theme('spacing.4'),
         marginBottom: theme('spacing.2'),
       },
 
@@ -283,7 +293,7 @@ module.exports = ({ theme }) => ({
           textDecorationColor: 'var(--tw-prose-links-underline)',
         },
       },
-      ':is(h1, h2, h3) a': {
+      ':is(h1, h2, h3, h4) a': {
         fontWeight: 'inherit',
       },
       strong: {
@@ -317,7 +327,7 @@ module.exports = ({ theme }) => ({
       },
 
       // Overrides
-      ':is(h1, h2, h3) + *': {
+      ':is(h1, h2, h3, h4) + *': {
         marginTop: '0',
       },
       '> :first-child': {
@@ -332,6 +342,7 @@ module.exports = ({ theme }) => ({
     css: {
       '--tw-prose-body': 'var(--tw-prose-invert-body)',
       '--tw-prose-headings': 'var(--tw-prose-invert-headings)',
+      '--tw-prose-headings-dimmed': 'var(--tw-prose-invert-headings-dimmed)',
       '--tw-prose-links': 'var(--tw-prose-invert-links)',
       '--tw-prose-links-hover': 'var(--tw-prose-invert-links-hover)',
       '--tw-prose-links-underline': 'var(--tw-prose-invert-links-underline)',

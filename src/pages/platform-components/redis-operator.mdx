@@ -1,5 +1,9 @@
 # Redis: Spotahome's Redis Operator
 
+For Redis deployment management we use [Spotahome Redis Operator](https://github.com/spotahome/redis-operator).
+
+## Architecture Decision Record
+
 One thing we didn't anticipate when we started building our platform was that Redis would turn out to be one of the most annoying piece of software to manage. Redis has two approaches to solve high availability: Sentinel and Cluster. Cluster mode requires a minimum of 6 Redis server instances while the Sentinel approach requires 2 Redis servers and 3 Sentinel servers to handle failover.
 
 For Ruby on Rails applications where Sidekiq is commonly used, Cluster mode isn't supported, so we had to find an operator that supported Sentinel. At the time there was only one open source operator available for this: [Spotahome Redis Operator](https://github.com/spotahome/redis-operator), so that's the one we went with.
@@ -17,16 +21,82 @@ For Ruby on Rails applications where Sidekiq is commonly used, Cluster mode isn'
 - Doesn't come with a proxy solution to easily use a single `REDIS_URL` (that said, once you have true Sentinel support client side you won't want to use the `REDIS_URL` approach any more)
 - Sparsely documented
 
-## Alternatives Considered
+### Alternatives Considered
 
-### Redis Enterprise Operator
+#### Redis Enterprise Operator
 
 Requires a paid license. Very enterprisey. Unclear if the custom HA model they offer is suitable to us or not. I tried asking a simple question in their sales chat and they ended up trying to call me every day for about a month (I never picked up).
 
-### OpsTree Redis Operator
+#### OpsTree Redis Operator
 
 Only supported Redis Cluster for HA at the time of our evaluation. We would love to revisit this one at some point.
 
-### KubeDB
+#### KubeDB
 
-See comments on the Postgres rundown.
+See comments on the PostgreSQL alternatives considered.
+
+## Creating a database
+
+In your DevOps repository, run `k generate resource <application-name> redis` to generate a new database resource. This will add a `RedisFailover` template under `applications/<application-name>/templates` and output some Helm configuration  for you to manually add into `applications/<application-name>/values.yaml`.
+
+You can inspect our default generator template here: https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/redis.yaml. By modifying this template in your own GitOps repository you can tweak the default configuration for all Redis deployments created with `k generate` in your cluster.
+
+## Connecting to a database
+
+### From inside Kubernetes
+
+Run `k redis:url <cluster-name>` to get a URL you can use to connect to a redis cluster inside Kubernetes.
+
+Run `k redis:sentinel-url <cluster-name>` to get a sentinel URL you can use in conjunction with Sentinel supported clients. Note: there is no standard format for sentinel URL's so you'll have to parse it and integrate it yourself.
+
+To provide URLs via ENV variables to an application you can add an entry in the following style to the `env` array in your application's `values.yaml`:
+
+```yaml
+env:
+  - name: REDIS_URL
+    value: "redis://<cluster-name>-redis-master.default.svc:6379"
+  # Note: there is no standard Sentinel URL, you'll have to integrate it in your app yourself
+  - name: SENTINEL_URL
+    value: "redis-sentinel://redis-sentinel://rfs-<cluster-name>:26379/mymaster"
+```
+
+### From your local machine
+
+Run `k redis:cli <cluster-name>`.
+
+## Import an external database
+
+In this guide we will use an RDB dump to import an external Redis database into our cluster. There are other ways to do this, such as via real time replication, but that is not always possible and thus out of scope for this documentation.
+
+### Step 1. Get an RDB dump
+
+Depending on the service provider you may or may not have privilege to execute an RDB dump. If you do have privileges, you can get a dump with:
+
+```bash
+redis-cli -u <REDIS_URL> --rdb dump.rdb
+```
+
+If you don't, you may be able to request a backup and download a dump from the service providers UI dashboard (this is the case with Redis Labs).
+
+### Step 2. Import the dump
+
+To import the dump we will use the open source tool `rmt` (from https://github.com/leonchen83/redis-rdb-cli):
+
+```bash
+wget https://github.com/leonchen83/redis-rdb-cli/releases/download/v0.9.3/redis-rdb-cli-release.zip
+unzip redis-rdb-cli-release.zip
+rm redis-rdb-cli-release.zip
+cd redis-rdb-cli/bin
+
+kubectl port-forward services/<redis-resource>-master 6479:9999
+
+./rmt -s </path/to/dump.rdb> -m redis://localhost:9999
+
+# clean up the redis-rdb-cli directory as you wish
+```
+
+## Security Considerations
+
+Our default [redis template](https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/redis.yaml) does not create passwords for new Redis databases. We omit this because Redis is not exposed to the public internet by default and our general security policy is to blindly trust the private network. We also want our default configuration to be as simple as possible.
+
+That said, if you have stricter security requirements and would like to add a password to your Redis database, you can read about how to do that in the [Enabling Redis Auth](https://github.com/spotahome/redis-operator#enabling-redis-auth) section of the operator documentation.
