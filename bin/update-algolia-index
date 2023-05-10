@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+# This was the original script used to index the docs. It has been replaced by
+# `scripts/refresh-algolia-search-index.js` to avoid having to install both
+# Ruby and Node.js when building the app.
+
 require "bundler/setup"
 
 Bundler.require
