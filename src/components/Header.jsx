@@ -59,7 +59,7 @@ export const Header = forwardRef(function Header({ className }, ref) {
           <MobileNavigation />
         </div>
         <Link className="lg:hidden pl-4" href="/" aria-label="Home">
-          <h1 className="font-matiz text-2xl text-sunrise-500">RECLAIM THE STACK!</h1>
+          <h1 className="font-matiz text-xl sm:text-2xl text-sunrise-500">RECLAIM THE STACK!</h1>
         </Link>
         <div className="flex items-center gap-5">
           <div className="hidden md:block md:h-5 md:w-px md:bg-stone-900/10 md:dark:bg-white/15" />
