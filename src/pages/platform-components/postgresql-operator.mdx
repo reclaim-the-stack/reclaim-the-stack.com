@@ -51,7 +51,7 @@ A major pro is that this operator covers all the databases we need. However it r
 
 ## Creating a database
 
-In your DevOps repository, run `k generate resource <application-name> postgres` to generate a new database resource. This will add a `PostgresCluster` template under `applications/<application-name>/templates` and output some Helm configurationn for you to manually add into `applications/<application-name>/values.yaml`.
+In your DevOps repository, run `k generate resource <application-name> postgres` to generate a new database resource. This will add a `PostgresCluster` template under `applications/<application-name>/templates` and output some Helm configuration for you to manually add into `applications/<application-name>/values.yaml`.
 
 You can inspect our default generator template here: https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml. By modifying this template in your own GitOps repository you can tweak the default configuration for all Postgres clusters created with `k generate` in your cluster.
 
