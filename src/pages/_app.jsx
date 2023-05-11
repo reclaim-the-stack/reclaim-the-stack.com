@@ -29,6 +29,8 @@ export default function App({ Component, pageProps }) {
         )}
         <meta name="description" content={pageProps.description} />
         <link href="https://fonts.cdnfonts.com/css/matiz" rel="stylesheet" />
+        <meta property='og:image' content='https://reclaim-the-stack.com/og-logo.png' />
+        <link rel="icon" type="image/x-icon" href="/favicon.png"></link>
       </Head>
       <MDXProvider components={mdxComponents}>
         <Layout {...pageProps}>
