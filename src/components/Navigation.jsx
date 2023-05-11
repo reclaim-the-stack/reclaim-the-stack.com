@@ -210,6 +210,12 @@ export const navigation = [
     ],
   },
   {
+    title: 'Guides',
+    links: [
+      { title: 'Production Checklist', href: '/guides/production-checklist' },
+    ],
+  },
+  {
     title: 'Talos Manager',
     links: [
       { title: 'Introduction', href: '/talos-manager/introduction' },
@@ -222,7 +228,7 @@ export const navigation = [
 export function Navigation(props) {
   return (
     <nav {...props}>
-      <ul role="list">
+      <ul role="list" className="mb-20">
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}
