@@ -18,7 +18,6 @@ Documentation: https://linkerd.io
 - Has done a good job at load balancing HTTP traffic within our cluster
 - Great realtime dashboard for network observability
 
-
 ### Cons
 
 - Was annoying to install using GitOps (some kind of certificate curse we had to mitigate by manually generating certificates valid for the next 100 years)
@@ -31,7 +30,7 @@ We agreed to avoid **Istio** since it's known to be a more bloated alternative a
 
 ## Usage
 
-Any pod with the label `linkerd.io/inject: enabled` will automatically get a `linkerd` sidecar container injected into and start proxying all network traffic. Our default deployment templates
+Any pod with the label `linkerd.io/inject: enabled` will automatically get a `linkerd` sidecar container injected and start proxying all network traffic. Our default [deployment generator templates](https://github.com/reclaim-the-stack/get-started/tree/master/generators/deployments) all have this label by default.
 
 ## Security Considerations
 
