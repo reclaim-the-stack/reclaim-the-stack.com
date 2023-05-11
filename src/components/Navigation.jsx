@@ -195,6 +195,7 @@ export const navigation = [
   {
     title: 'Platform Components',
     links: [
+      { title: 'Platform Components', href: '/platform-components/introduction' },
       { title: 'Gitops: ArgoCD', href: '/platform-components/gitops-argocd' },
       { title: 'Ingress: Cloudflared', href: '/platform-components/ingress-cloudflared' },
       { title: 'PostgreSQL', href: '/platform-components/postgresql-operator' },

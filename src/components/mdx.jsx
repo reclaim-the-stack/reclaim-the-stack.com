@@ -29,8 +29,8 @@ function InfoIcon(props) {
 
 export function Note({ children }) {
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-sunrise-500/20 bg-sunrise-50/50 p-4 leading-6 text-sunrise-900 dark:border-sunrise-500/30 dark:bg-sunrise-500/5 dark:text-sunrise-200 dark:[--tw-prose-links-hover:theme(colors.sunrise.300)] dark:[--tw-prose-links:theme(colors.white)]">
-      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-sunrise-500 stroke-white dark:fill-sunrise-200/20 dark:stroke-sunrise-200" />
+    <div className="my-6 flex gap-2.5 rounded-2xl border border-yellow-500/20 bg-blue-50/50 p-4 leading-6 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/5 dark:text-blue-200 dark:[--tw-prose-links-hover:theme(colors.blue.300)] dark:[--tw-prose-links:theme(colors.white)]">
+      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-blue-500 stroke-white dark:fill-blue-200/20 dark:stroke-blue-200" />
       <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {children}
       </div>

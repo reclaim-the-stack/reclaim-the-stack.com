@@ -1,10 +1,16 @@
 # Kubernetes Platform: Installation
 
-Fork our [get-started](https://github.com/reclaim-the-stack/get-started) repository and follow along the README instructions to install the platform.
+## Step 1. Kubernetes cluster
 
-If you plan to deploy the platform on [Hetzner](https://hetzner.com/) you might want to start by looking at our [Talos Manager documentation](/talos-manager) instead. Talos Manager is a web app we built specifically for bootstrapping Talos Linux based Kubernetes clusters on Hetzner.
+The main prerequisite for installing the platform is having access to a Kubernetes cluster. We aim to be compatible with any Kubernetes cluster running on cloud or bare metal, managed or unmanaged. Though you may want to tweak some of the components to fit your specific environment (eg. when using a managed Kubernetes cloud, switch to their official network and storage components).
 
-We also recorded a screencast stepping through the installation process which could be of help:
+At Mynewsdesk we run our clusters on [Hetzner](https://hetzner.com/) dedicated servers for that sweet [price/performance](https://docs.google.com/spreadsheets/d/1x4yza3yJ-TbGkpGZqHYcrZzs36cLqgK-xnu-Y6e4i40/edit#gid=202172609). If you plan to run on Hetzner as well you might want to start by looking at our [Talos Manager](/talos-manager) project, a web app for bootstrapping Talos Linux based Kubernetes clusters on Hetzner dedicated servers and cloud.
+
+If you just want to try out the platform on your local machine we include instructions for doing that in our get-started repository [README](https://github.com/reclaim-the-stack/get-started#bootstrap-a-local-cluster).
+
+## Step 2. Install the platform
+
+Fork our [get-started](https://github.com/reclaim-the-stack/get-started) repository and follow along the README instructions to install the platform. We'vealso recorded a screencast stepping through the installation process which might be helpful:
 
 <iframe className="aspect-video w-full" src="https://www.youtube.com/embed/MnwemfEfEFw" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
 

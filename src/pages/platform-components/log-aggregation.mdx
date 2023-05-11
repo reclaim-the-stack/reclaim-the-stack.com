@@ -1,6 +1,11 @@
 # Log Aggregation: Qryn
 
-[Qryn](https://qryn.metrico.in/) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) is used to feed logs into `qryn`. Finally we configure `Grafana` from our Monitoring stack to use `qryn` as a data source.
+[Qryn](https://qryn.metrico.in/) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) is used to feed logs into `qryn`. Finally we configure Grafana from our [Monitoring](/platform-components/monitoring) stack to use `qryn` as a data source.
+
+Github: https://github.com/metrico/qryn<br />
+Documentation: https://qryn.metrico.in
+
+## Architecture Decision Record
 
 ### Pros
 
@@ -15,10 +20,18 @@
 - Requires extra configuration for ClickHouse
 - Not as widely used as Loki
 
-## Alternatives Considered
+### Alternatives Considered
 
-### Loki
+#### Loki
 
 At Mynewsdesk we use Loki for our in house version of the platform. It has served us quite well but architecturally it has significantly more moving parts than Qryn which means it becomes harder to reason about. It's also dependent on S3 if running in it's "scalable" mode which makes it harder to create a good "it just works" experience for our open source platform.
 
 We have also run into the odd performance issue with Loki, especially when it comes to querying large amounts of data. Loki version [2.8.0](https://github.com/grafana/loki/releases/tag/v2.8.0) introduced a new [TSBD Index](https://lokidex.com/posts/tsdb/) which promises a 4x performance improvement which may bring performance on par with ClickHouse. We have not yet had the chance to test this out.
+
+## Usage
+
+You can tail logs from applications via `k logs <application-name>`. You can also filter the logs based on type of deployment by passing the types as additional arguments to the command. Eg. `k logs <application-name> web sidekiq`.
+
+To do advanced search, filtering and aggregation of logs, you can use the Explore view in Grafana and selecting the Logging datasource. Run `k logs:search <application-name>` to quickly open the Grafana log UI for a specific application.
+
+Read more on how to work with logs in the Grafana UI in their [Logs in Explore](https://grafana.com/docs/grafana/latest/explore/logs-integration/) documentation.

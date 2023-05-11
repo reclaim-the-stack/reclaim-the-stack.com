@@ -8,6 +8,8 @@ The [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/
 
 And a bunch of integrations with Kubernetes components.
 
+## Architecture Decision Record
+
 ### Pros
 
 - Easy to get going
@@ -21,3 +23,13 @@ And a bunch of integrations with Kubernetes components.
 - Hard to wrap head around, installs a lot of components which can end up feeling a bit like a black box
 - Do we actually want / need all of it?
 - Grafana doesn't always provide a user experience on par with commercial observability / log aggregation products
+
+### Alternatives Considered
+
+We considered if it would be worth assembling our own prometheus stack to get more clarity into each component that is installed in the stack but given the high development velocity of the kube-prometheus-stack and the fact that it seems to work well we decided to go with it.
+
+## Usage
+
+Run `k dashboard <application-name>` to open up a Grafana dashboard with basic metrics for your applications.
+
+Tip: Use the `CMD+k` keyboard shortcut inside of Grafana to quickly switch between dashboards. Search for eg. `postgres` and `redis` to navigate to the various dedicated dashboards.

@@ -1,8 +1,15 @@
 # Ingress: Cloudflared
-
+<Note>
+The Cloudflared component is disabled by default since it requires manual configuration and can't be fully automated. See the [Enable Cloudflared](#enable-cloudflared) section for instructions on how to enable it.
+</Note>
 In a typical Kubernetes cluster you will see an Ingress Controller provided by eg. [Nginx](https://github.com/kubernetes/ingress-nginx) or [Traefik](https://doc.traefik.io/traefik/providers/kubernetes-ingress/) being used. The ingress controller runs a web server and watches the Kubernetes API for Ingress resources. When it sees an Ingress resource it will configure the web server to route traffic to the backend services specified in the Ingress resource.
 
 However, for the Reclaim the Stack platform we are using [cloudflared](https://github.com/cloudflare/cloudflared) to route HTTP traffic into our cluster without a dedicated Ingress Controller. Cloudflared is a lightweight encrypted tunneling daemon that proxies requests through the Cloudflare network.
+
+Github: https://github.com/cloudflare/cloudflared<br />
+Documentation: [https://developers.cloudflare.com/cloudflare-one...](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/local/local-management/)
+
+## Architecture Decision Record
 
 ### Pros
 
@@ -21,6 +28,17 @@ However, for the Reclaim the Stack platform we are using [cloudflared](https://g
 - Cloudflared does not do any kind of balancing for outgoing requests to origins either (we solved this via [service mesh](/platform-components/service-mesh))
 - We saw some issues related to the default QUIC based protocol, after changing to http2 things have been stable
 
-## Alternatives considered
+### Alternatives considered
 
 Both **Nginx** and **Traefik** appear to be provide good ingress controllers. However figuring out how to expose these via a LoadBalancer on bare metal servers was something we didn't have time to investigate. At the end of the day, `cloudflared` fit our use-case pretty much perfectly since we were heavily invested in and happy with Cloudflare already.
+
+## Enable Cloudflared
+
+Refer to the [Cloudflare Ingress Configuration](https://github.com/reclaim-the-stack/get-started#cloudflared-ingress-configuration) section of the get-started README for instructions on how to enable it.
+
+## Configuring Ingress
+
+All ingress rules are configured via the [cloudflared/config.yaml](https://github.com/reclaim-the-stack/get-started/blob/master/platform/cloudflared/config.yaml) in your GitOps repository. When adding web deployments to your applications via `k generate deployment <application-name>` you will get instructions for how to add ingress rules to the configuration file as part of the command output.
+
+For an exhaustive documentation on how to configure ingress rules, refer to Cloudflare's [Ingress Rules](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/local/local-management/ingress/) documentation.
+

@@ -1,10 +1,15 @@
 # Service Mesh: Linkerd
 
-You can think of a service mesh as an infrastructure layer for standardising service-to-service communication. Adding things like observability, security, and reliability to layer 7 network communication without requiring any changes to your code.
+You can think of a service mesh as an infrastructure layer for standardising service-to-service communication. Adding things like observability, security, and reliability to layer 7 network communication without requiring any changes to your application code.
 
 The reason we added [Linkerd](https://linkerd.io/) to our stack is because we needed load balancing between services as well as a standard observability layer for HTTP metrics to be able to use a single Grafana dashboard for all applications.
 
 Along with Linkerd we also added support for [linkerd-viz](https://linkerd.io/2.13/reference/cli/viz/), a realtime dashboard that provides an overview of the network traffic, including the ability to dig deep into individual HTTP requests to inspect things like headers etc.
+
+Github: https://github.com/linkerd/linkerd2<br />
+Documentation: https://linkerd.io
+
+## Architecture Decision Record
 
 ### Pros
 
@@ -16,15 +21,19 @@ Along with Linkerd we also added support for [linkerd-viz](https://linkerd.io/2.
 
 ### Cons
 
-- Was annoying to install using gitops (some kind of certificate curse we had to mitigate by manually generating certificates valid for the next 100 years)
+- Was annoying to install using GitOps (some kind of certificate curse we had to mitigate by manually generating certificates valid for the next 100 years)
 - Highly intrusive - mutates pods on creation to inject its side-car network container which can be unintuitive to developers
 - Can break existing network communication, eg. it broke some SMTP traffic for us which had to be fixed by explicitly configuring Linkerd to avoid intercepting SMTP traffic
 
-## Alternatives Considered
+### Alternatives Considered
 
 We agreed to avoid **Istio** since it's known to be a more bloated alternative and we assume we don't need any of its additional features. We talked about using **nginx mesh** in case we would use nginx as ingress or **Traefik mesh** which claims to be “the simplest” alternative. However they had their own challenges with installing and configuring correctly and once we got Linkerd working we had no reason to spend more time researching alternatives.
 
-## Installation notes
+## Usage
+
+Any pod with the label `linkerd.io/inject: enabled` will automatically get a `linkerd` sidecar container injected into and start proxying all network traffic. Our default deployment templates
+
+## Security Considerations
 
 Since we don't particularily care for the complexity of the [non-optional](https://github.com/linkerd/linkerd2/discussions/7987#discussioncomment-2274959) mTLS security of Linkerd we ended up generating root certificates that are valid for the next 100 years and using that for the installation. If this is a security concern for your organisation you can figure out how to generate your own via the [official documentation](https://linkerd.io/2.13/tasks/generate-certificates/) for generating certificates.
 
