@@ -99,8 +99,6 @@ function resolveResult(result) {
       .map(([, { value }]) => value),
   }
 
-  console.log('resolveResult', html)
-
   return html
 }
 
@@ -179,7 +177,7 @@ function SearchResult({ result, resultIndex, autocomplete, collection }) {
       >
         {hierarchyHtml.map((item, itemIndex, items) => (
           <Fragment key={itemIndex}>
-            <span className={itemIndex == 0 && 'text-xs text-stone-700 dark:text-stone-300'} dangerouslySetInnerHTML={{ __html: item }} />
+            <span className={itemIndex == 0 ? 'text-xs text-stone-700 dark:text-stone-300' : ''} dangerouslySetInnerHTML={{ __html: item }} />
             <span
               className='mx-2 text-stone-300 dark:text-stone-700'
             >
