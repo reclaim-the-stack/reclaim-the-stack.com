@@ -30,7 +30,7 @@ objects = Dir.glob("out/**/*.html").flat_map do |html_file|
   # lvl2: sub headers (extracted from article <h2>s)
 
   # NOTE: Could consider traversing the DOM from the <a> tag in search of an <h2> containg the catgory instead
-  lvl0 = html_file.split("/")[1].split("-").map(&:capitalize).join(" ")
+  lvl0 = html_file.split("/")[2].split("-").map(&:capitalize).join(" ")
   lvl1 = dom.at_css("nav [aria-current='page']").content
 
   current_header = nil

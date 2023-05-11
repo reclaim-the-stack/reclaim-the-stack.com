@@ -44,7 +44,7 @@ const objects = listHtmlFiles("out").flatMap((htmlFile) => {
   const dom = new JSDOM(content)
   const article = dom.window.document.querySelector("article")
 
-  const lvl0 = htmlFile.split("/")[1].split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
+  const lvl0 = htmlFile.split("/")[2].split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
   const lvl1 = dom.window.document.querySelector("nav [aria-current='page']").textContent
 
   let currentHeader = null
@@ -81,7 +81,7 @@ const objects = listHtmlFiles("out").flatMap((htmlFile) => {
       })
     } else {
       if (sections.length > 0) {
-        sections[sections.length - 1].content += child.textContent
+        sections[sections.length - 1].content += `\n${child.textContent}`
       }
     }
   }
