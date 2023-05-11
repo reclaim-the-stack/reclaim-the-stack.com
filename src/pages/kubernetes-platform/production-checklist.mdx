@@ -1,0 +1,45 @@
+# Production Checklist
+
+<Note>
+This document is a work in progress. You may have to figure some things out for yourself.
+</Note>
+
+The [get-started](https://github.com/reclaim-the-stack/get-started) repository is designed to be a simple and fast way to get started with the platform. However there are a few things you probably want to do before you consider your platform deployment production ready.
+
+## Reconfigure for High Availability
+
+The get started stack is designed to work on a single node deployment out of the box. In a production environment you should have enough nodes to be able to run the components in their high availability configurations.
+
+Search your GitOps repo for `# TODO` comments relating to high availability and tune as necessary.
+
+## Configure OIDC based access management
+
+You probably don't want to share the root admin credentials for the platform with all users. A nice approach for access control is to configure OIDC based access management. This will allow you to use your existing identity provider (eg. Google) to manage access to the platform.
+
+Documentation TBC...
+
+## Configure S3 based off site backups
+
+Here are some of the components that can be configured to use S3 for off site backups:
+
+- Postgres (eg. tweak the Postgres generator template to use S3 for backups and WAL archiving)
+- Elasticsearch (set up S3 based snapshots via Kibana)
+- Qryn (ClickHouse can use S3 based storage for its log aggregation)
+
+## Configure Alertmanager
+
+You can configure Prometheus Alertmanager, part of our [Monitoring](/platform-components/monitoring) stack, to send alerts to a number of different destinations, eg. a Slack channel.
+
+Documentation TBC...
+
+## Log aggregation for system logs
+
+How to do this and whether it is possible will depend on the underlying OS running your Kubernetes cluster. At Mynewsdesk we based our approach to adding system logging via Talos Linux cluster on https://www.talos.dev/v1.4/talos-guides/configuration/logging/#kernel-logs in conjunction with running Vector inside the cluster.
+
+Documentation TBC...
+
+## Control Plane Backups
+
+By doing backups of your control planes `etcd` service you can recover from a total loss of your Kubernetes cluster.
+
+Documentation TBC...

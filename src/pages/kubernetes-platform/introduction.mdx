@@ -8,3 +8,34 @@ The Reclaim the Stack Platform is a fully open source Kubernetes-based deploymen
 We gave a talk about the motivations and approach for building out the platform at TalosCon in 2023 which serves as a good introduction.
 
 <iframe className="aspect-video w-full" src="https://www.youtube.com/embed/xhXMnFHwzF0" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+
+## Is it for you?
+
+While we believe we have done a good job at making a platform which is stable, easy to use and easy to maintain. It won't be for everyone.
+
+Signs that you will be happy with your choice to Reclaim the Stack include:
+
+- You want to fully own your data due to privacy concerns / GDPR or other compliance reasons
+- You want to improve user experience by running on the latest and most performant hardware which isn't available or affordable on cloud
+- You're looking for a Heroku-like DevOps experience (minus the buildpacks)
+- You're tired of your current PaaS or Cloud provider having issues multiple times a year
+- You want all authentication to be handled via a single OIDC provider (eg. Google) without paying ridiculous enterprise prices to "as a service" providers
+- Your current cloud / PaaS costs are north of $10,000/month
+- You have at least 2 developers who are into the idea of running Kubernetes and their own infrastructure and are willing to spend some time learning how to do so
+- You want to avoid vendor lock in with a fully open source stack*
+
+<p class="text-2xs text-stone-500">* Except for Cloudflare 🙈</p>
+
+## A note on security
+
+We take a pragmatic stance to security. That is we don't go out of our way to complicate things that we don't believe need to be complicated for the sake of security. Our basic philosophy when it comes to security is that we can trust our developer and that we can trust the private network within the cluster. With that in mind, don't expect a "zero trust" or rigorous "least privilege" approach to access control or networking.
+
+Since we started off with using Heroku, we have kept things at a similar level of security, with some different trade-offs. For example:
+
+On Heroku, all your infrastructure is publicly available on the internet, protected by passwords alone. With the Reclaim the Stack platform, your infrastructure is only available to the private network, unless you explicitly expose it. This, in our opinion, makes our platform more secure than Heroku on a fundamental level.
+
+On Heroku, you can control access for your organisations users on a per application basis. With the Reclaim the Stack platform, we do not offer this kind of granularity. Technically, all application resources are created in the `default` Kubernetes namespace and all users are expected to have access to this namespace.
+
+Note however that the platform components themselves tend to reside outside of the `default` namespace and can thus be locked down to a smaller set of users, but applications are accessible by everyone.
+
+There is of course nothing stopping you from adding additional access control and security layers inside the cluster via your own GitOps repository, but we currently don't provide any tooling to manage this.

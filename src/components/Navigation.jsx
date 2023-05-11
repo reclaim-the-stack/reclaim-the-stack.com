@@ -190,6 +190,7 @@ export const navigation = [
       { title: 'Introduction', href: '/kubernetes-platform/introduction' },
       { title: 'Installation', href: '/kubernetes-platform/installation' },
       { title: 'Usage', href: '/kubernetes-platform/usage' },
+      { title: 'Production Checklist', href: '/kubernetes-platform/production-checklist' },
     ],
   },
   {
