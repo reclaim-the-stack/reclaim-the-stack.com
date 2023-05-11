@@ -18,17 +18,18 @@ Router.events.on('hashChangeStart', onRouteChange)
 
 export default function App({ Component, pageProps }) {
   let router = useRouter()
+  let title = router.pathname === '/' ?
+    'Reclaim the Stack Documentation' :
+    `${pageProps.title} - Reclaim the Stack Documentation`
 
   return (
     <>
       <Head>
-        {router.pathname === '/' ? (
-          <title>Reclaim the Stack Documentation</title>
-        ) : (
-          <title>{`${pageProps.title} - Reclaim the Stack Documentation`}</title>
-        )}
+        <title>{title}</title>
         <meta name="description" content={pageProps.description} />
         <link href="https://fonts.cdnfonts.com/css/matiz" rel="stylesheet" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={title} />
         <meta property='og:image' content='https://reclaim-the-stack.com/og-logo.png' />
         <link rel="icon" type="image/x-icon" href="/favicon.png"></link>
       </Head>
