@@ -31,7 +31,7 @@ export function Layout({ children, sections = [] }) {
         </motion.div>
         {/* NOTE: lg:pl-[19.5rem] is the size of the menu column on large displays */}
         <div className="relative lg:pl-[19.5rem] px-4 pt-14 sm:px-6 lg:px-8">
-          <main className="pb-16 pt-12">
+          <main className="pb-16 lg:pt-12">
             <Prose as="article">
               {children}
             </Prose>
