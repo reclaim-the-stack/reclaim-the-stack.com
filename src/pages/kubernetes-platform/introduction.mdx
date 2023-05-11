@@ -26,13 +26,15 @@ Signs that you will be happy with your choice to Reclaim the Stack include:
 
 <p class="text-2xs text-stone-500">* Except for Cloudflare 🙈</p>
 
+Whether you're all in or on the fence about using it, feel free to [join our Discord community](https://discord.gg/v23eA4FMPC) and engage with others who also have an interest in cheaper, faster and better application hosting.
+
 ## A note on security
 
-We take a pragmatic stance to security. That is we don't go out of our way to complicate things that we don't believe need to be complicated for the sake of security. Our basic philosophy when it comes to security is that we can trust our developer and that we can trust the private network within the cluster. With that in mind, don't expect a "zero trust" or rigorous "least privilege" approach to access control or networking.
+We take a pragmatic stance to security. That is we don't go out of our way to complicate things that we don't believe need to be complicated for the sake of security. Our basic philosophy when it comes to security is that we can trust our developers and that we can trust the private network within the cluster. With that in mind, don't expect a "zero trust" or rigorous "least privilege" approach to access control or networking.
 
 Since we started off with using Heroku, we have kept things at a similar level of security, with some different trade-offs. For example:
 
-On Heroku, all your infrastructure is publicly available on the internet, protected by passwords alone. With the Reclaim the Stack platform, your infrastructure is only available to the private network, unless you explicitly expose it. This, in our opinion, makes our platform more secure than Heroku on a fundamental level.
+On Heroku, all your infrastructure is publicly available on the internet, protected by passwords alone. With the Reclaim the Stack platform, your infrastructure is only available to the private network, unless you explicitly expose it. This, in our opinion, makes this platform more secure than Heroku on a fundamental level.
 
 On Heroku, you can control access for your organisations users on a per application basis. With the Reclaim the Stack platform, we do not offer this kind of granularity. Technically, all application resources are created in the `default` Kubernetes namespace and all users are expected to have access to this namespace.
 
