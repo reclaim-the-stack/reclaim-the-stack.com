@@ -2,18 +2,18 @@
 
 ## Step 1. Kubernetes cluster
 
-The main prerequisite for installing the platform is having access to a Kubernetes cluster. We aim to be compatible with any Kubernetes cluster running on cloud or bare metal, managed or unmanaged. Though you may want to tweak some of the components to fit your specific environment (eg. when using a managed Kubernetes cloud, switch to their official network and storage components).
+The main prerequisite for installing the platform is having access to a Kubernetes cluster. We aim for compatibility with any Kubernetes cluster, whether it is running on the cloud or bare metal, managed or unmanaged. Though you may want to tweak some of the components to fit your specific environment (eg. when using a managed Kubernetes cloud, switch to their official network and storage components).
 
-At Mynewsdesk we run our clusters on [Hetzner](https://hetzner.com/) dedicated servers for that sweet [price/performance](https://docs.google.com/spreadsheets/d/1x4yza3yJ-TbGkpGZqHYcrZzs36cLqgK-xnu-Y6e4i40/edit#gid=202172609). If you plan to run on Hetzner as well you might want to start by looking at our [Talos Manager](/docs/talos-manager) project, a web app for bootstrapping Talos Linux based Kubernetes clusters on Hetzner dedicated servers and cloud.
+At Mynewsdesk, we run our clusters on [Hetzner](https://hetzner.com/) dedicated servers for that sweet [price/performance](https://docs.google.com/spreadsheets/d/1x4yza3yJ-TbGkpGZqHYcrZzs36cLqgK-xnu-Y6e4i40/edit#gid=202172609). If you're planning to use Hetzner too, you might want to start by looking at our [Talos Manager](/docs/talos-manager) project. It's a web app for bootstrapping Talos Linux based Kubernetes clusters on Hetzner dedicated servers and cloud.
 
-If you just want to try out the platform on your local machine we include instructions for doing that in our get-started repository [README](https://github.com/reclaim-the-stack/get-started#bootstrap-a-local-cluster).
+If you just want to try out the platform on your local machine we provide instructions for doing so in our get-started repository's [README](https://github.com/reclaim-the-stack/get-started#bootstrap-a-local-cluster).
 
 ## Step 2. Install the platform
 
-Fork our [get-started](https://github.com/reclaim-the-stack/get-started) repository and follow along the README instructions to install the platform. We'vealso recorded a screencast stepping through the installation process which might be helpful:
+Fork our [get-started](https://github.com/reclaim-the-stack/get-started) repository and follow along the README instructions to install the platform. We've also recorded a screencast stepping through the installation process which you might find helpful:
 
 <iframe className="aspect-video w-full" src="https://www.youtube.com/embed/MnwemfEfEFw" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
 
 ## Using a private GitHub repo
 
-The Get Started guide assumes using a public GitHub repository. For a production cluster you might want to use a private repository instead. The only difference is that you need to provide ArgoCD with credentials to access your private GitHub repository. How to do this is covered in the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories/).
+The Get Started guide assumes the use of a public GitHub repository. For a production cluster you might want to use a private repository instead. The only difference is that you need to provide ArgoCD with credentials to access your private GitHub repository. Instructions on how to do this can be found in the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories/).
