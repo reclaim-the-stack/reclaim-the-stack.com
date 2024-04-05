@@ -19,6 +19,10 @@ npm run dev
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
 
+## Deployment
+
+This site is automatically built and deployed to Cloudflare Pages on git push. See https://dash.cloudflare.com/d4ef7d89d9e8c9782dde5852b7aadd31/pages/view/reclaim-the-stack for the administration dashboard.
+
 ## Global search
 
 This site uses [Algolia DocSearch](https://docsearch.algolia.com) for the global search. The following [environment variables](https://nextjs.org/docs/basic-features/environment-variables) are used to integrate with Algolia:
