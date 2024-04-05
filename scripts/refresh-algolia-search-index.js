@@ -45,7 +45,10 @@ const objects = listHtmlFiles("out").flatMap((htmlFile) => {
   const article = dom.window.document.querySelector("article")
 
   const lvl0 = htmlFile.split("/")[2].split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
-  const lvl1 = dom.window.document.querySelector("nav [aria-current='page']").textContent
+  const lvl1 = dom.window.document.querySelector("nav [aria-current='page']")?.textContent
+
+  // Skip if the article is not part of the main nav (such as legacy articles)
+  if (!lvl1) return []
 
   let currentHeader = null
   let currentAnchor = null
