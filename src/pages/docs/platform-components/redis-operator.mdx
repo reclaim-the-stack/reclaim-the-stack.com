@@ -88,7 +88,7 @@ unzip redis-rdb-cli-release.zip
 rm redis-rdb-cli-release.zip
 cd redis-rdb-cli/bin
 
-kubectl port-forward services/<redis-resource>-master 6479:9999
+kubectl port-forward services/<redis-resource>-master 9999:6379
 
 ./rmt -s </path/to/dump.rdb> -m redis://localhost:9999
 
