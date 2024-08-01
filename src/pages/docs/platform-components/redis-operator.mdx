@@ -16,6 +16,7 @@ For Ruby on Rails applications where Sidekiq is commonly used, Cluster mode isn'
 ### Cons
 
 - Has a fundamental architectural issue in that it relies on a single Kubernetes StatefulSet per cluster to manage Replicas (see this [GitHub issue](https://github.com/spotahome/redis-operator/issues/565#issuecomment-1448677515))
+- Has a really scary bug that can cause Sentinel clusters to accidently join each other and cause Redis instances from different clusters to start following eachother (see this [GitHub issue](https://github.com/spotahome/redis-operator/issues/550)))
 - No built in backup / restore system
 - Runs 3 sentinels per Redis deployment, could have used 3 sentinels for the entire Kubernetes cluster
 - Doesn't come with a proxy solution to easily use a single `REDIS_URL` (that said, once you have true Sentinel support client side you won't want to use the `REDIS_URL` approach any more)
