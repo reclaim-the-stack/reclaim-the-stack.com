@@ -4,7 +4,7 @@ For Redis deployment management we use [Spotahome Redis Operator](https://github
 
 ## Architecture Decision Record
 
-One thing we didn't anticipate when we started building our platform was that Redis would turn out to be one of the most annoying piece of software to manage. Redis has two approaches to solve high availability: Sentinel and Cluster. Cluster mode requires a minimum of 6 Redis server instances while the Sentinel approach requires 2 Redis servers and 3 Sentinel servers to handle failover.
+One thing we didn't anticipate when we started building our platform was that Redis would turn out to be the most annoying piece of software to manage. Redis has two approaches to solve high availability: Sentinel and Cluster. Cluster mode requires a minimum of 6 Redis server instances while the Sentinel approach requires 2 Redis servers and 3 Sentinel servers to handle failover.
 
 For Ruby on Rails applications where Sidekiq is commonly used, Cluster mode isn't supported, so we had to find an operator that supported Sentinel. At the time there was only one open source operator available for this: [Spotahome Redis Operator](https://github.com/spotahome/redis-operator), so that's the one we went with.
 
