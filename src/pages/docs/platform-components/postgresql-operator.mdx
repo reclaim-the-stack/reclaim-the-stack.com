@@ -124,8 +124,6 @@ time pg_restore \
 
 ## Configuring external S3 backups
 
-By default our PGO template will use local persistent volumes for backups and WAL replication. You might want to use external S3 based storage instead for enhanced durability and off site disaster recovery requirements.
+Our [CloudnativePG template](https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml) includes a commented out section prepared for WAL streaming and daily Object Storage backups. Uncomment and adjust it to your liking.
 
-Backups are configured via `spec.backups.pgbackrest`. You can read about it in the [PGO backups documentation](https://access.crunchydata.com/documentation/postgres-operator/latest/tutorial/backups/). See the "Using S3" section for detals on how to configure S3 based backups.
-
-In our [default template](https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml) we have commented out some example S3 configuration. You can uncomment it and use that as a baseline for your own S3 configuration.
+CloudnativePG has extensive documentation on [Backups](https://cloudnative-pg.io/documentation/1.27/backup/), [WAL archiving](https://cloudnative-pg.io/documentation/1.27/wal_archiving/) and [Recovery](https://cloudnative-pg.io/documentation/1.27/recovery/) to study at your leisure.
