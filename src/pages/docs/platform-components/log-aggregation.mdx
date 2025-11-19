@@ -1,15 +1,17 @@
-# Log Aggregation: Qryn
+# Log Aggregation: Gigapipe
 
-[Qryn](https://qryn.metrico.in/) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) is used to feed logs into `qryn`. Finally we configure Grafana from our [Monitoring](/platform-components/monitoring) stack to use `qryn` as a data source.
+[Gigapipe](https://gigapipe.com/index.html) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) is used to feed logs into `qryn`. Finally we configure Grafana from our [Monitoring](/platform-components/monitoring) stack to use `qryn` as a data source.
 
-Github: https://github.com/metrico/qryn<br />
-Documentation: https://qryn.metrico.in
+Github: https://github.com/metrico/gigapipe<br />
+Documentation: https://gigapipe.com/docs/oss.html
+
+Note: Gigapipe was previously called Qryn, this documentation was originally written for qryn but has been updated to reflect the new name.
 
 ## Architecture Decision Record
 
 ### Pros
 
-- Simple monolithic architecture (qryn HTTP server + ClickHouse as data store)
+- Simple monolithic architecture (gigapipe HTTP server + ClickHouse as data store)
 - Fully Loki / LogQL compatible
 - Also supports other data sources (we don't make use of this currently)
 - ClickHouse as a backend equals excellent performance and scalability
@@ -25,8 +27,6 @@ Documentation: https://qryn.metrico.in
 #### Loki
 
 At Mynewsdesk we use Loki for our in house version of the platform. It has served us quite well but architecturally it has significantly more moving parts than Qryn which means it becomes harder to reason about. It's also dependent on S3 if running in it's "scalable" mode which makes it harder to create a good "it just works" experience for our open source platform.
-
-We have also run into the odd performance issue with Loki, especially when it comes to querying large amounts of data. Loki version [2.8.0](https://github.com/grafana/loki/releases/tag/v2.8.0) introduced a new [TSBD Index](https://lokidex.com/posts/tsdb/) which promises a 4x performance improvement which may bring performance on par with ClickHouse. We have not yet had the chance to test this out.
 
 ## Usage
 
