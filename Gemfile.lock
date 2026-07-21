@@ -25,6 +25,8 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  arm64-darwin-24
+  arm64-darwin-25
 
 DEPENDENCIES
   algolia
@@ -32,4 +34,4 @@ DEPENDENCIES
   nokogiri
 
 BUNDLED WITH
-   2.4.6
+  4.0.16
