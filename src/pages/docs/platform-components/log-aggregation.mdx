@@ -1,6 +1,6 @@
 # Log Aggregation: Gigapipe
 
-[Gigapipe](https://gigapipe.com/index.html) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) is used to feed logs into `qryn`. Finally we configure Grafana from our [Monitoring](/platform-components/monitoring) stack to use `qryn` as a data source.
+[Gigapipe](https://gigapipe.com/index.html) is a Loki compatible log (and metrics) aggregation system using [ClickHouse](https://clickhouse.com/) under the hood. [Vector](https://vector.dev/) is used to feed logs into `gigapipe`. Finally we configure Grafana from our [Monitoring](/platform-components/monitoring) stack to use `gigapipe` as a data source.
 
 Github: https://github.com/metrico/gigapipe<br />
 Documentation: https://gigapipe.com/docs/oss.html
@@ -27,6 +27,10 @@ Note: Gigapipe was previously called Qryn, this documentation was originally wri
 #### Loki
 
 At Mynewsdesk we use Loki for our in house version of the platform. It has served us quite well but architecturally it has significantly more moving parts than Qryn which means it becomes harder to reason about. It's also dependent on S3 if running in it's "scalable" mode which makes it harder to create a good "it just works" experience for our open source platform.
+
+#### Promtail / Alloy
+
+To feed gigapipe with logs we previously used Promtail. After its deprecation we chose Vector over Alloy due to having better performance and a smaller footprint.
 
 ## Usage
 
