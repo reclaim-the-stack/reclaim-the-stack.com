@@ -1,15 +1,86 @@
-:root {
-  --shiki-color-text: theme('colors.white');
-  --shiki-token-constant: theme('colors.sunrise.300');
-  --shiki-token-string: theme('colors.sunrise.300');
-  --shiki-token-comment: theme('colors.stone.500');
-  --shiki-token-keyword: theme('colors.sky.300');
-  --shiki-token-parameter: theme('colors.pink.300');
-  --shiki-token-function: theme('colors.violet.300');
-  --shiki-token-string-expression: theme('colors.sunrise.300');
-  --shiki-token-punctuation: theme('colors.stone.200');
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@config '../../typography.mjs';
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.25rem;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.75rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1;
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 1;
+  --text-8xl: 6rem;
+  --text-8xl--line-height: 1;
+  --text-9xl: 8rem;
+  --text-9xl--line-height: 1;
+
+  --shadow-glow: 0 0 4px rgb(0 0 0 / 0.1);
+
+  --container-lg: 33rem;
+  --container-2xl: 40rem;
+  --container-3xl: 50rem;
+  --container-5xl: 66rem;
+
+  --font-matiz: Matiz, sans-serif;
+
+  --color-sunrise-50: #fff2f1;
+  --color-sunrise-100: #ffe3e0;
+  --color-sunrise-200: #ffcbc6;
+  --color-sunrise-300: #ffa79f;
+  --color-sunrise-400: #ff7468;
+  --color-sunrise-500: #fb4838;
+  --color-sunrise-600: #e92a19;
+  --color-sunrise-700: #c42011;
+  --color-sunrise-800: #a21e12;
+  --color-sunrise-900: #861f16;
+  --color-sunrise-950: #490b06;
+
+  --color-cod-50: #f7f6f6;
+  --color-cod-100: #e6e1e2;
+  --color-cod-200: #cdc2c4;
+  --color-cod-300: #ac9c9f;
+  --color-cod-400: #8a777a;
+  --color-cod-500: #6f5d5f;
+  --color-cod-600: #58494a;
+  --color-cod-700: #483d3e;
+  --color-cod-800: #3c3334;
+  --color-cod-900: #342d2e;
+  --color-cod-950: #1d1818;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer base {
+  :root {
+    --shiki-color-text: var(--color-white);
+    --shiki-token-constant: var(--color-sunrise-300);
+    --shiki-token-string: var(--color-sunrise-300);
+    --shiki-token-comment: var(--color-stone-500);
+    --shiki-token-keyword: var(--color-sky-300);
+    --shiki-token-parameter: var(--color-pink-300);
+    --shiki-token-function: var(--color-violet-300);
+    --shiki-token-string-expression: var(--color-sunrise-300);
+    --shiki-token-punctuation: var(--color-stone-200);
+  }
+
+  [inert] ::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -4,11 +4,10 @@ This is the source code for the documentation site at https://reclaim-the-stack.
 
 ## Getting started
 
-To get started with this template, first install the npm dependencies:
+To get started, first install the npm dependencies:
 
 ```bash
 npm install
-cp .env.example .env.local
 ```
 
 Next, run the development server:
@@ -25,14 +24,8 @@ This site is automatically built and deployed to Cloudflare Pages on git push. S
 
 ## Global search
 
-This site uses [Algolia DocSearch](https://docsearch.algolia.com) for the global search. The following [environment variables](https://nextjs.org/docs/basic-features/environment-variables) are used to integrate with Algolia:
-
-```
-NEXT_PUBLIC_DOCSEARCH_APP_ID=
-NEXT_PUBLIC_DOCSEARCH_API_KEY=
-NEXT_PUBLIC_DOCSEARCH_INDEX_NAME=
-```
+Search is powered by [FlexSearch](https://github.com/nextapps-de/flexsearch). The index is built automatically from the MDX pages in `src/app` at build time, see `src/mdx/search.mjs`.
 
 ## License
 
-This site is using Tailwind UI, licensed under the [Tailwind UI license](https://tailwindui.com/license).
+This site is based on the [Protocol](https://tailwindcss.com/plus/templates/protocol) template from Tailwind Plus, licensed under the [Tailwind Plus license](https://tailwindcss.com/plus/license).

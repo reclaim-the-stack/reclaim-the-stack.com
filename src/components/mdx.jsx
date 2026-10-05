@@ -1,11 +1,20 @@
-import Link from 'next/link'
 import clsx from 'clsx'
+import Link from 'next/link'
 
 import { Heading } from '@/components/Heading'
+import { Prose } from '@/components/Prose'
 
 export const a = Link
 export { Button } from '@/components/Button'
-export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
+export { Code as code, CodeGroup, Pre as pre } from '@/components/Code'
+
+export function wrapper({ children }) {
+  return (
+    <Prose as="article" className="pb-16 lg:pt-12">
+      {children}
+    </Prose>
+  )
+}
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />
@@ -29,11 +38,9 @@ function InfoIcon(props) {
 
 export function Note({ children }) {
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-yellow-500/20 bg-blue-50/50 p-4 leading-6 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/5 dark:text-blue-200 dark:[--tw-prose-links-hover:theme(colors.blue.300)] dark:[--tw-prose-links:theme(colors.white)]">
+    <div className="my-6 flex gap-2.5 rounded-2xl border border-yellow-500/20 bg-blue-50/50 p-4 text-sm/6 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/5 dark:text-blue-200 dark:[--tw-prose-links-hover:var(--color-blue-300)] dark:[--tw-prose-links:var(--color-white)]">
       <InfoIcon className="mt-1 h-4 w-4 flex-none fill-blue-500 stroke-white dark:fill-blue-200/20 dark:stroke-blue-200" />
-      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
-        {children}
-      </div>
+      <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )
 }
@@ -50,8 +57,8 @@ export function Col({ children, sticky = false }) {
   return (
     <div
       className={clsx(
-        '[&>:first-child]:mt-0 [&>:last-child]:mb-0',
-        sticky && 'xl:sticky xl:top-24'
+        '*:first:mt-0 *:last:mb-0',
+        sticky && 'xl:sticky xl:top-24',
       )}
     >
       {children}
@@ -64,7 +71,7 @@ export function Properties({ children }) {
     <div className="my-6">
       <ul
         role="list"
-        className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-stone-900/5 p-0 dark:divide-white/5"
+        className="m-0 max-w-[calc(var(--container-lg)-(--spacing(8)))] list-none divide-y divide-stone-900/5 p-0 dark:divide-white/5"
       >
         {children}
       </ul>
@@ -72,7 +79,7 @@ export function Properties({ children }) {
   )
 }
 
-export function Property({ name, type, children }) {
+export function Property({ name, children, type }) {
   return (
     <li className="m-0 px-0 py-4 first:pt-0 last:pb-0">
       <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -80,12 +87,16 @@ export function Property({ name, type, children }) {
         <dd>
           <code>{name}</code>
         </dd>
-        <dt className="sr-only">Type</dt>
-        <dd className="font-mono text-xs text-stone-400 dark:text-stone-500">
-          {type}
-        </dd>
+        {type && (
+          <>
+            <dt className="sr-only">Type</dt>
+            <dd className="font-mono text-xs text-stone-400 dark:text-stone-500">
+              {type}
+            </dd>
+          </>
+        )}
         <dt className="sr-only">Description</dt>
-        <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+        <dd className="w-full flex-none *:first:mt-0 *:last:mb-0">
           {children}
         </dd>
       </dl>
