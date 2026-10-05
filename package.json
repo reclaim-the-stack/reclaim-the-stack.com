@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "build": "echo \"NODE_VERSION=$NODE_VERSION\"; env | sort | grep -iE \"node|nvm|asdf|volta|tool\" ; ls -la; cat .nvmrc .node-version .tool-versions 2>&1; next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
