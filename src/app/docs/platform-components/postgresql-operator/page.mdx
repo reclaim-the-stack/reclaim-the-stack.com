@@ -1,0 +1,133 @@
+export const metadata = {
+  title: "PostgreSQL: CloudnativePG",
+}
+
+# PostgreSQL: CloudnativePG
+
+Getting PostgreSQL right was a top priority when creating our stack. It is the database which hosts our most critical data so failure here wasn't an option. Luckily there are plenty of production ready Kubernetes operators available for Kubernetes. After looking at a bunch of them we settled on [CloudnativePG](https://cloudnative-pg.io).
+
+Github: https://github.com/cloudnative-pg/cloudnative-pg <br />
+Documentation: https://cloudnative-pg.io/docs/
+
+## Architecture Decision Record
+
+### Pros
+
+- Built by EDB (EnterpriseDB), a company with more than two decades of Postgres experience
+- Well documented
+- Completely free and open source
+- Good [Slack community](https://join.slack.com/t/cloudnativepg/shared_invite/zt-237bhehx3-htDW2kz2hKJxEhn1W4VTnw) for support
+- Fully implemented in Kubernetes (unlike competing operator which use legacy tools like Patroni for HA management)
+- Convention over configuration approach to simplify YAML payloads
+- Uses [Barman](https://pgbarman.org/) for physical backups which provides point in time recovery support and is significantly faster than logical backups
+- Provides grafana dashboards out of the box
+- Can populate application `DATABASE_URL` ENV variables directly from its generated secrets instead of having to manually piece together user/password/host etc
+
+### Cons
+
+- No support for automatically generating secrets for additional users with its role management, see [GitHub issue](https://github.com/cloudnative-pg/cloudnative-pg/issues/3788)
+- No support for "exponential backoff" for backup schedule retention
+
+### Alternatives Considered
+
+#### Crunchy Postgres Operator (PGO)
+
+For the first year we used this operator, but due to [license concerns](https://www.crunchydata.com/developers/terms-of-use) we dropped it in favor of CloudnativePG. Technically these operator are fairly equal with some minor pros and cons either way. Read our [old PostgreSQL documentation](/docs/platform-components/legacy-postgres-operator-pgo) for details.
+
+#### Zalando Postgres Operator
+
+Similar to PGO this is also built by a company providing a big Postgres as a service business. An interesting feature is a web UI to visualize and manage clusters (this would likely not play well with our GitOps approach though). Something that turned us off was that everything felt very much built around the organisational culture of Zalando. Eg. all postgres instances must be owned by “a team”. But this does not match our structure.
+
+#### Stackgres
+
+We never got around to actually trying this out. Had some vocal fans on eg. Reddit. Main selling point is a bazillion extensions built in. Not as widely used as the alternatives.
+
+#### KubeDB
+
+A major pro is that this operator covers all the databases we need. However it requires a paid license and we couldn’t get a clear read on its capabilities for all of the different databases. We tried it for one or two databases but it didn’t make a lasting impression on us.
+
+## Creating a database
+
+In your DevOps repository, run `k generate resource <application-name> postgres` to generate a new database resource. This will add a `PostgresCluster` template under `applications/<application-name>/templates` and output some Helm configuration for you to manually add into `applications/<application-name>/values.yaml`.
+
+You can inspect our default generator template here: https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml. By modifying this template in your own GitOps repository you can tweak the default configuration for all Postgres clusters created with `k generate` in your cluster.
+
+## Connecting to a database
+
+### From inside Kubernetes
+
+Run `k pg:url <cluster-name>` to get a URL you can use to connect to a postgres cluster inside Kubernetes.
+
+To provide a URL via an ENV variable to an application you can add an entry in the following style to the `env` array in your application's `values.yaml`:
+
+```yaml
+env:
+  - name: DATABASE_URL
+    value:
+      valueFrom:
+        secretKeyRef:
+          name: <cluster-name>-pguser-<cluster-or-user-name>
+          key: uri
+```
+
+### From your local machine
+
+There are two ways to connect to databases inside of your Kubernetes cluster from your local machine.
+
+If all you need is a `psql` terminal use `k pg:psql <cluster-name>`.
+
+If you want to connect to your database using a GUI like [TablePlus](https://tableplus.com/), [Postico](https://eggerapps.at/postico2/) etc you can use `k pg:proxy` to start a proxy server. The proxy allows you to connect to Postgres clusters running inside of Kubernetes via local port `10000` and using the name of the Postgres cluster as the database name. The proxy will automagically forward your connection and handle authentication to the specified database.
+
+## Import an external database
+
+While it's possible to declaratively configure crunchy postgres clusters to import data using a few different strategies, first creating your postgres cluster and then manually importing a logical dump can be more straight forward and is the approach we are taking here.
+
+#### Step 1: Dump the remote database
+
+We will use `pg_dump` with `--format d` to create a directory format dump. This is oftentimes the fastest way to create a dump and also the fastest way to restore it since you can parallelize handling of your database tables across CPU threads via the `--jobs` argument (feel free to tweak this to a number according to the cores available on the Postgres database).
+
+Note: We are dumping and restoring from a shell inside of the Kubernetes cluster via `k playground` to minimize network latency. This implies that the node running `playground` needs to have enough ephemeral storage available to store the dump.
+
+```bash
+# open a shell in the kubernetes kluster
+k playground <node-name>
+
+mkdir dump
+time pg_dump \
+  --no-owner \
+  --no-privileges \
+  --verbose \
+  --jobs 16 \
+  --format d \
+  --file dump \
+  --host <host.com> \
+  --port <port> \
+  --username <username> \
+  --dbname <database-name>
+```
+
+#### Step 2: Import the database dump
+
+Now we can import the dump using `pg_restore`. We are assuming that you have created a crunchy postgres cluster using our default template where the name of the cluster, the user and the database all share the same name (feel free to tweak this as needed). You can get the password for your cluster by running `k pg:password <cluster-name>` on your local machine.
+
+```bash
+PG_CLUSTER=<cluster-name>
+
+time pg_restore \
+  --verbose \
+  --clean \
+  --no-acl \
+  --no-owner \
+  --format d \
+  --jobs 16 \
+  --host $PG_CLUSTER-primary.default.svc \
+  --username $PG_CLUSTER \
+  --dbname $PG_CLUSTER \
+  dump
+```
+
+## Configuring external S3 backups
+
+Our [CloudnativePG template](https://github.com/reclaim-the-stack/get-started/blob/master/generators/resources/postgres.yaml) includes a commented out section prepared for WAL streaming and daily Object Storage backups. Uncomment and adjust it to your liking.
+
+CloudnativePG has extensive documentation on [Backups](https://cloudnative-pg.io/documentation/1.27/backup/), [WAL archiving](https://cloudnative-pg.io/documentation/1.27/wal_archiving/) and [Recovery](https://cloudnative-pg.io/documentation/1.27/recovery/) to study at your leisure.

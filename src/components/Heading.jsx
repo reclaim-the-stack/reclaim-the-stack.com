@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
-import Link from 'next/link'
+'use client'
+
 import { useInView } from 'framer-motion'
+import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
@@ -45,8 +47,8 @@ function Anchor({ id, inView, children }) {
       className="group text-inherit no-underline hover:text-inherit"
     >
       {inView && (
-        <div className="absolute ml-[calc(-1*var(--width))] mt-1 hidden w-[var(--width)] opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(theme(maxWidth.lg)+theme(spacing.8))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:theme(spacing.10)]">
-          <div className="group/anchor block h-5 w-5 rounded-lg bg-stone-50 ring-1 ring-inset ring-stone-300 transition hover:ring-stone-500 dark:bg-stone-800 dark:ring-stone-700 dark:hover:bg-stone-700 dark:hover:ring-stone-600">
+        <div className="absolute mt-1 -ml-(--width) hidden w-(--width) opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(var(--container-lg)+(--spacing(8)))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:--spacing(10)]">
+          <div className="group/anchor block h-5 w-5 rounded-lg bg-stone-50 ring-1 ring-stone-300 transition ring-inset hover:ring-stone-500 dark:bg-stone-800 dark:ring-stone-700 dark:hover:bg-stone-700 dark:hover:ring-stone-600">
             <AnchorIcon className="h-5 w-5 stroke-stone-500 transition dark:stroke-stone-400 dark:group-hover/anchor:stroke-white" />
           </div>
         </div>
@@ -57,16 +59,16 @@ function Anchor({ id, inView, children }) {
 }
 
 export function Heading({
-  level = 2,
   children,
-  id,
   tag,
   label,
+  level,
   anchor = true,
   ...props
 }) {
+  level = level ?? 2
   let Component = `h${level}`
-  let ref = useRef()
+  let ref = useRef(null)
   let registerHeading = useSectionStore((s) => s.registerHeading)
 
   let inView = useInView(ref, {
@@ -76,7 +78,11 @@ export function Heading({
 
   useEffect(() => {
     if (level === 2) {
-      registerHeading({ id, ref, offsetRem: tag || label ? 8 : 6 })
+      registerHeading({
+        id: props.id,
+        ref,
+        offsetRem: tag || label ? 8 : 6,
+      })
     }
   })
 
@@ -85,12 +91,11 @@ export function Heading({
       <Eyebrow tag={tag} label={label} />
       <Component
         ref={ref}
-        id={anchor ? id : undefined}
         className={tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24'}
         {...props}
       >
         {anchor ? (
-          <Anchor id={id} inView={inView}>
+          <Anchor id={props.id} inView={inView}>
             {children}
           </Anchor>
         ) : (

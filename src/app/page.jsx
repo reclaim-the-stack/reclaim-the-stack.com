@@ -1,0 +1,10 @@
+import { Hero } from '@/components/Hero'
+
+export const metadata = {
+  description:
+    'We spent 7 months building a Kubernetes based platform to replace Heroku for our SaaS product at mynewsdesk.com. The results were a 90% reduction in costs and a 30% improvement in performance. We also significantly improved developer experience with reduced deploy times and faster / more accessible tooling.',
+}
+
+export default function Home() {
+  return <Hero />
+}
