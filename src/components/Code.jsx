@@ -126,7 +126,9 @@ function CodePanelHeader({ tag, label }) {
 }
 
 function CodePanel({ children, tag, label, code }) {
-  let child = Children.only(children)
+  // `Children.only` throws for some large code blocks (eg. in the OpenSearch
+  // usage page), so take the first child and fall back on the `code` prop
+  let child = Children.toArray(children)[0]
 
   if (isValidElement(child)) {
     const props = child.props
