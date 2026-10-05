@@ -1,0 +1,75 @@
+export const metadata = {
+  title: "OpenSearch Operator: Monitoring",
+}
+
+# OpenSearch Operator: Monitoring
+
+## Prometheus metrics
+
+Every OpenSearch node exposes Prometheus metrics at `/_prometheus/metrics`, through the [Prometheus exporter plugin](https://github.com/opensearch-project/opensearch-prometheus-exporter). Scraping requires the `metrics` user, whose password the operator stores in the `opensearch-metrics-basic-auth` Secret in its own namespace. It's the same for all clusters, so a single ServiceMonitor can scrape every cluster.
+
+Index level metrics are disabled by default to keep their high cardinality labels out of Prometheus. Set `prometheus.indices: true` in a cluster's `config` to enable them.
+
+### Adding a ServiceMonitor
+
+This assumes `kube-prometheus-stack` runs in the `monitoring` namespace, as it does on Reclaim the Stack, and Sealed Secrets for secrets. From your DevOps repository:
+
+```bash
+echo 'apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: reclaim-the-stack-opensearch
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: opensearch-operator
+      app.kubernetes.io/name: opensearch
+  endpoints:
+    - port: http
+      scheme: http
+      path: /_prometheus/metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      basicAuth:
+        username:
+          name: opensearch-servicemonitor-basic-auth
+          key: username
+        password:
+          name: opensearch-servicemonitor-basic-auth
+          key: password
+---' > platform/kube-prometheus-stack/opensearch-servicemonitor.yaml
+
+metrics_password=`kubectl get secret opensearch-metrics-basic-auth -n opensearch-operator -o jsonpath='{.data.password}' | base64 -d`
+kubectl create secret generic opensearch-servicemonitor-basic-auth -n monitoring --dry-run=client \
+  --from-literal=username=metrics --from-literal=password=$metrics_password -o yaml \
+  | kubeseal -o yaml >> platform/kube-prometheus-stack/opensearch-servicemonitor.yaml
+```
+
+Add the new file to the resources of `platform/kube-prometheus-stack/kustomization.yaml`, then commit and push.
+
+The selector only matches the headless service of each cluster, which includes pods that aren't ready, so every pod is scraped exactly once. The client service deliberately lacks the `app.kubernetes.io/name` label: a selector which also matched it would scrape every pod twice.
+
+## Grafana dashboard
+
+The operator repository includes a Grafana dashboard for the metrics, [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json). Import it in Grafana, or add it to your Grafana dashboard provisioning.
+
+## Cluster status
+
+The status of each `OpenSearch` resource shows its health, nodes and version, what the operator is doing, and `Reconciled` and `Ready` conditions, see [Status](/docs/opensearch-operator/cluster-spec#status). The operator also emits events for notable steps and problems, eg. `ReconcileFailed`, `RollingRestartBlocked` or `SnapshotRepositoriesFailed` Warnings:
+
+```bash
+kubectl get opensearch -A
+kubectl describe opensearch <cluster-name>
+kubectl get events --field-selector involvedObject.kind=OpenSearch
+```
+
+## Argo CD
+
+With the [Argo CD health check](/docs/opensearch-operator/installation#argo-cd-health-check) installed, an application whose OpenSearch cluster failed to apply its latest change, or is red, unreachable or rejects the operator's credentials, shows as Degraded in Argo CD, with the reason in the health message.
+
+## The operator itself
+
+The operator logs to stdout, eg. `kubectl logs -n opensearch-operator deployment/opensearch-operator`. With `SENTRY_DSN` set, errors in the operator itself are reported to Sentry, see [Configuration](/docs/opensearch-operator/installation#configuration).
