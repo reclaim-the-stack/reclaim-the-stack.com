@@ -11,7 +11,7 @@ The operator is installed from the `deploy/` directory of its repository, a Kust
 - a ServiceAccount with a ClusterRole, since the operator manages clusters in any namespace
 - the operator Deployment, running `ghcr.io/reclaim-the-stack/opensearch-operator`
 
-The operator targets Kubernetes 1.36 or later. Pick the latest version from the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases); the examples below use `v0.15.0`.
+The operator targets Kubernetes 1.36 or later. Pick the latest version from the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases); the examples below use `v0.16.0`.
 
 ## With GitOps (recommended)
 
@@ -22,7 +22,7 @@ On Reclaim the Stack, platform components are installed through Argo CD from you
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.15.0
+  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0
 ```
 
 And an Argo CD Application which syncs it:
@@ -62,7 +62,7 @@ kubectl get pods -n opensearch-operator
 Without GitOps, apply a release directly:
 
 ```bash
-kubectl apply -k "github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.15.0"
+kubectl apply -k "github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0"
 ```
 
 ## Configuration
@@ -74,7 +74,7 @@ The operator is configured with environment variables on its Deployment. With th
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.15.0
+  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0
 patches:
   - target:
       kind: Deployment
