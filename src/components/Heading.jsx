@@ -62,11 +62,10 @@ export function Heading({
   children,
   tag,
   label,
-  level,
+  level = 2,
   anchor = true,
   ...props
 }) {
-  level = level ?? 2
   let Component = `h${level}`
   let ref = useRef(null)
   let registerHeading = useSectionStore((s) => s.registerHeading)
