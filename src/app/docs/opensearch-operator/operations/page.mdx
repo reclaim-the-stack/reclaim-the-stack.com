@@ -74,7 +74,7 @@ kubectl delete configmap opensearch-<cluster-name>-bootstrap
 kubectl delete pods -l opensearch.reclaim-the-stack.com/cluster=<cluster-name>,app.kubernetes.io/name=opensearch
 ```
 
-The operator records the new cluster once it has formed. Then restore your data from a [snapshot](/docs/opensearch-operator/usage#restoring-a-snapshot).
+The operator records the new cluster once it has formed. Then restore your data from a [snapshot](/docs/opensearch-operator/usage#snapshots).
 
 ## Deleting a cluster
 

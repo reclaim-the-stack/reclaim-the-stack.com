@@ -10,16 +10,20 @@ Every OpenSearch node exposes Prometheus metrics at `/_prometheus/metrics`, thro
 
 Index level metrics are disabled by default to keep their high cardinality labels out of Prometheus. Set `prometheus.indices: true` in a cluster's `config` to enable them.
 
-### Adding a ServiceMonitor
+### On Reclaim the Stack
 
-This assumes `kube-prometheus-stack` runs in the `monitoring` namespace, as it does on Reclaim the Stack, and Sealed Secrets for secrets. From your DevOps repository:
+Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters and the OpenSearch dashboard for Grafana, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
 
-```bash
-echo 'apiVersion: monitoring.coreos.com/v1
+### On other Kubernetes clusters
+
+Add a ServiceMonitor in the operator's namespace, where it can use the operator's `opensearch-metrics-basic-auth` Secret directly:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: reclaim-the-stack-opensearch
-  namespace: monitoring
+  name: opensearch
+  namespace: opensearch-operator
 spec:
   namespaceSelector:
     any: true
@@ -35,26 +39,20 @@ spec:
       scrapeTimeout: 10s
       basicAuth:
         username:
-          name: opensearch-servicemonitor-basic-auth
+          name: opensearch-metrics-basic-auth
           key: username
         password:
-          name: opensearch-servicemonitor-basic-auth
+          name: opensearch-metrics-basic-auth
           key: password
----' > platform/kube-prometheus-stack/opensearch-servicemonitor.yaml
-
-metrics_password=`kubectl get secret opensearch-metrics-basic-auth -n opensearch-operator -o jsonpath='{.data.password}' | base64 -d`
-kubectl create secret generic opensearch-servicemonitor-basic-auth -n monitoring --dry-run=client \
-  --from-literal=username=metrics --from-literal=password=$metrics_password -o yaml \
-  | kubeseal -o yaml >> platform/kube-prometheus-stack/opensearch-servicemonitor.yaml
 ```
 
-Add the new file to the resources of `platform/kube-prometheus-stack/kustomization.yaml`, then commit and push.
+Prometheus has to select ServiceMonitors outside its own namespace and without its release label. With `kube-prometheus-stack`, set `prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues: false`, as Reclaim the Stack does.
 
 The selector only matches the headless service of each cluster, which includes pods that aren't ready, so every pod is scraped exactly once. The client service deliberately lacks the `app.kubernetes.io/name` label: a selector which also matched it would scrape every pod twice.
 
 ## Grafana dashboard
 
-The operator repository includes a Grafana dashboard for the metrics, [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json). Import it in Grafana, or add it to your Grafana dashboard provisioning.
+On Reclaim the Stack the OpenSearch dashboard comes with the operator component. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
 
 ## Cluster status
 

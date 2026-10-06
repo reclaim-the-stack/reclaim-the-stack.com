@@ -51,7 +51,7 @@ Hence we moved our vector based workloads to OpenSearch and created this operato
 
 ## Creating a cluster
 
-Add the OpenSearch generator template to your DevOps repository once (see [Usage](/docs/opensearch-operator/usage#creating-a-cluster)), then run `k generate resource <application-name> opensearch`. This adds an `OpenSearch` resource under `applications/<application-name>/templates` and outputs the Helm values to add to `applications/<application-name>/values.yaml`.
+The operator is an optional platform component, disabled by default. Enable it as described in [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack), then run `k generate resource <application-name> opensearch`. This adds an `OpenSearch` resource under `applications/<application-name>/templates` and outputs the Helm values to add to `applications/<application-name>/values.yaml`.
 
 ## Connecting to a cluster
 

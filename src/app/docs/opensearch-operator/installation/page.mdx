@@ -11,92 +11,84 @@ The operator is installed from the `deploy/` directory of its repository, a Kust
 - a ServiceAccount with a ClusterRole, since the operator manages clusters in any namespace
 - the operator Deployment, running `ghcr.io/reclaim-the-stack/opensearch-operator`
 
-The operator targets Kubernetes 1.36 or later. Pick the latest version from the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases); the examples below use `v0.16.0`.
+The operator targets Kubernetes 1.36 or later. See the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases) for the latest version, the examples below use `v0.16.0`.
 
-## With GitOps (recommended)
+An OpenSearch cluster needs at least 3 Kubernetes nodes with 4Gi of memory to spare each, since every OpenSearch node runs on its own Kubernetes node.
 
-On Reclaim the Stack, platform components are installed through Argo CD from your DevOps repository. Add a Kustomization which references a release of the operator:
+## On Reclaim the Stack
+
+The operator is an optional component of the platform, disabled by default. To enable it, move its Argo CD Application out of the `disabled` directory of your DevOps repository:
+
+```bash
+mv platform-applications/disabled/opensearch-operator.yaml platform-applications/
+git add platform-applications
+git commit -m "Enable the OpenSearch operator"
+git push
+```
+
+Argo CD then installs `platform/opensearch-operator`, which holds:
+
+- the operator, at the release referenced in `platform/opensearch-operator/kustomization.yaml`
+- a ServiceMonitor, so Prometheus scrapes the metrics of all OpenSearch clusters, see [Monitoring](/docs/opensearch-operator/monitoring)
+- the OpenSearch dashboard for Grafana
+
+The platform also comes with the [Argo CD health check](#argo-cd-health-check) for OpenSearch clusters (in `platform/argocd/config.yaml`) and a `k generate` template for them (`generators/resources/opensearch.yaml`), so you can go on with [creating a cluster](/docs/opensearch-operator/usage#creating-a-cluster).
+
+If your DevOps repository was created from [get-started](https://github.com/reclaim-the-stack/get-started) before the operator was added, copy these files from it: `platform-applications/disabled/opensearch-operator.yaml`, the `platform/opensearch-operator` directory, `generators/resources/opensearch.yaml`, and the OpenSearch health check in `platform/argocd/config.yaml`.
+
+## On other Kubernetes clusters
+
+### With GitOps
+
+Reference a release of the operator from a Kustomization:
 
 ```yaml
-# platform/opensearch-operator/kustomization.yaml
+# kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0
 ```
 
-And an Argo CD Application which syncs it:
+And sync it with your GitOps tool. With Argo CD, an Application along these lines:
 
 ```yaml
-# platform-applications/opensearch-operator.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: opensearch-operator
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   destination:
     server: https://kubernetes.default.svc
-  project: platform
+  project: default
   source:
-    path: platform/opensearch-operator
-    repoURL: https://github.com/<your-github-user>/<your-repo-name>.git
+    path: <path-to-the-kustomization>
+    repoURL: <your-repository-url>
   syncPolicy:
     automated:
-      allowEmpty: true
       prune: true
     syncOptions:
       - ServerSideApply=true
 ```
 
-Commit and push both files. Once Argo CD has synced the application, the operator is running:
+### With kubectl
 
-```bash
-kubectl get pods -n opensearch-operator
-```
-
-## With kubectl
-
-Without GitOps, apply a release directly:
+Apply a release directly:
 
 ```bash
 kubectl apply -k "github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0"
 ```
 
-## Configuration
+Either way, the operator is running once its pod is ready:
 
-The operator is configured with environment variables on its Deployment. With the Kustomization above you can set them with a patch:
-
-```yaml
-# platform/opensearch-operator/kustomization.yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0
-patches:
-  - target:
-      kind: Deployment
-      name: opensearch-operator
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: SENTRY_DSN
-          valueFrom:
-            secretKeyRef:
-              name: opensearch-operator-sentry
-              key: SENTRY_DSN
+```bash
+kubectl get pods -n opensearch-operator
 ```
-
-- `LOG_LEVEL`: `debug`, `info` (the default in `deploy/`), `warn` or `error`
-- `SENTRY_DSN`: reports operator errors to [Sentry](https://sentry.io). Expected conditions, such as an unreachable cluster or a spec the operator rejects, are logged and shown in the cluster's status instead.
-- `SENTRY_ENVIRONMENT`: the environment reported to Sentry, eg. `production`
 
 ## Argo CD health check
 
-Argo CD doesn't know how to judge the health of an `OpenSearch` resource on its own. Add this custom health check to the `argocd-cm` ConfigMap, eg. in the Argo CD configuration of your DevOps repository:
+Argo CD doesn't know how to judge the health of an `OpenSearch` resource on its own. On Reclaim the Stack this check is already in place. Elsewhere, add it to the `argocd-cm` ConfigMap:
 
 ```yaml
 resource.customizations.health.opensearch.reclaim-the-stack.com_OpenSearch: |
@@ -122,8 +114,32 @@ Applications with OpenSearch clusters then show as:
 - **Progressing** during rolling restarts and scaling, and until the operator has caught up with a change
 - **Degraded** when the latest change failed to apply, the cluster is red, or the operator can't reach it or log in to it. The message tells why.
 
+## Configuration
+
+The operator is configured with environment variables on its Deployment. Set them with a patch in the Kustomization, on Reclaim the Stack `platform/opensearch-operator/kustomization.yaml`:
+
+```yaml
+patches:
+  - target:
+      kind: Deployment
+      name: opensearch-operator
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: opensearch-operator-sentry
+              key: SENTRY_DSN
+```
+
+- `LOG_LEVEL`: `debug`, `info` (the default in `deploy/`), `warn` or `error`
+- `SENTRY_DSN`: reports operator errors to [Sentry](https://sentry.io). Expected conditions, such as an unreachable cluster or a spec the operator rejects, are logged and shown in the cluster's status instead.
+- `SENTRY_ENVIRONMENT`: the environment reported to Sentry, eg. `production`
+
 ## Upgrading
 
-Bump the `ref` of the Kustomization (or of your `kubectl apply`) to the new release. Always apply the whole `deploy/` directory, since a release can change the CRD and the operator's permissions as well as its image.
+Bump the `ref` of the operator in the Kustomization (on Reclaim the Stack `platform/opensearch-operator/kustomization.yaml`), or of your `kubectl apply`, to the new release. Always apply the whole `deploy/` directory, since a release can change the CRD and the operator's permissions as well as its image.
 
 Read the release notes first. They say whether the upgrade restarts the pods of existing clusters, which the operator then does one at a time, waiting for green health in between.

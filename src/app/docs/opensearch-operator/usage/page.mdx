@@ -8,16 +8,19 @@ This page covers day to day use of OpenSearch on Reclaim the Stack with [k](http
 
 ## Creating a cluster
 
-`k generate resource` creates resources from the templates in the `generators/resources` directory of your DevOps repository. Add this template as `generators/resources/opensearch.yaml` once:
+On Reclaim the Stack, enable the operator component first, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack).
+
+`k generate resource` creates resources from the templates in the `generators/resources` directory of your DevOps repository. The platform comes with this OpenSearch template as `generators/resources/opensearch.yaml`. Add it if your repository doesn't have it yet:
 
 ```yaml
 # Creates an OpenSearch cluster with an accompanying Dashboards instance.
+# Requires the opensearch-operator platform component, see the README.
 #
 # Example values.yaml:
 # resources:
 #   %{camelName}:
-#     replicas: 3 # Note: minimum of 3 replicas
-#     memory: 4Gi # Minimum of 4Gi required to avoid OOM kills
+#     replicas: 3 # Note: minimum of 3 replicas, each on its own database node
+#     memory: 4Gi # Note: minimum of 4Gi
 #     cpu: 1
 #     disk: 10Gi
 # env:
@@ -43,9 +46,11 @@ spec:
   resources:
     requests:
       memory: {{ .Values.resources.%{camelName}.memory }}
-      cpu: {{ .Values.resources.%{camelName}.cpu }}
+      cpu: {{ .Values.resources.%{camelName}.cpu | quote }}
     limits:
       memory: {{ .Values.resources.%{camelName}.memory }}
+  # Add an S3 credentials secret and uncomment to take daily snapshots, see
+  # https://reclaim-the-stack.com/docs/opensearch-operator/usage#snapshots
   # snapshotRepositories:
   #   - name: backups
   #     type: s3
@@ -104,7 +109,7 @@ env:
 
 `k opensearch:url <cluster-name>` prints the same URL.
 
-The Secret also holds the passwords of the other built-in users (`readall_password`, `snapshotrestore_password` and so on), see the [Cluster Spec](/docs/opensearch-operator/cluster-spec#credentials).
+The Secret also holds the passwords of the other built-in users (`readall_password`, `snapshotrestore_password` and so on), see the [Cluster Spec](/docs/opensearch-operator/cluster-spec#created-resources).
 
 ### From your local machine
 
