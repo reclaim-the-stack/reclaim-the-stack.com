@@ -30,8 +30,6 @@ components:
 
 See [Monitoring](/docs/opensearch-operator/monitoring) for what they include. The platform also comes with the [Argo CD health check](#argo-cd-health-check) for OpenSearch clusters, in `platform/argocd/config.yaml`. You can now go on with [creating a cluster](/docs/opensearch-operator/usage#creating-a-cluster).
 
-If your DevOps repository was created from [get-started](https://github.com/reclaim-the-stack/get-started) before the operator was added, copy these from it: `platform-applications/disabled/opensearch-operator.yaml`, the `platform/opensearch-operator` directory, `generators/resources/disabled/opensearch.yaml`, and the OpenSearch health check in `platform/argocd/config.yaml`.
-
 ## On any Kubernetes cluster
 
 The operator is installed from the `deploy/` directory of its repository, a Kustomize directory with everything it needs:
