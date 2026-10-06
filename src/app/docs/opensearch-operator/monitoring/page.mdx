@@ -14,7 +14,7 @@ Index level metrics are disabled by default to keep their high cardinality label
 
 Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters and the Grafana dashboard, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
 
-### On other Kubernetes clusters
+### On any Kubernetes cluster
 
 Add a ServiceMonitor in the operator's namespace, where it can use the operator's `opensearch-metrics-basic-auth` Secret directly:
 
