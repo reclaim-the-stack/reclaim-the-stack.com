@@ -12,7 +12,7 @@ Index level metrics are disabled by default to keep their high cardinality label
 
 ### On Reclaim the Stack
 
-Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
+Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters and the Grafana dashboard, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
 
 ### On other Kubernetes clusters
 
@@ -54,7 +54,7 @@ The selector only matches the headless service of each cluster, which includes p
 
 An OpenSearch dashboard shows the health, nodes, shards and thread pools of each cluster, its indexing and search rates and latencies, caches, JVM heap and garbage collection, and the CPU, memory and disk usage of its nodes.
 
-On Reclaim the Stack, enable the `grafana-dashboard` component in `platform/opensearch-operator/kustomization.yaml`, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). Grafana then picks it up on its own. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
+On Reclaim the Stack it comes with the operator component. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
 
 ## Alerts
 

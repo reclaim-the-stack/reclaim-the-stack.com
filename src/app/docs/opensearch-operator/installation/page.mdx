@@ -27,14 +27,13 @@ git commit -m "Enable the OpenSearch operator"
 git push
 ```
 
-Argo CD then installs `platform/opensearch-operator`: the operator, at the release referenced in `platform/opensearch-operator/kustomization.yaml`, and a ServiceMonitor, so Prometheus scrapes the metrics of all OpenSearch clusters.
+Argo CD then installs `platform/opensearch-operator`: the operator, at the release referenced in `platform/opensearch-operator/kustomization.yaml`, a ServiceMonitor, so Prometheus scrapes the metrics of all OpenSearch clusters, and the OpenSearch dashboard for Grafana.
 
-The same Kustomization has two optional components, a Grafana dashboard and Prometheus alerts for OpenSearch clusters. Uncomment them to enable them:
+Prometheus alerts for OpenSearch clusters are an optional component of the same Kustomization. Uncomment it to enable them:
 
 ```yaml
 # platform/opensearch-operator/kustomization.yaml
 components:
-  - ./grafana-dashboard
   - ./alerts
 ```
 
