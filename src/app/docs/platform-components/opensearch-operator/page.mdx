@@ -43,7 +43,11 @@ The [official operator](https://github.com/opensearch-project/opensearch-k8s-ope
 
 #### Elasticsearch with Elastic Cloud Kubernetes
 
-If you prefer Elasticsearch, the platform supports it through [Elastic Cloud Kubernetes](/docs/platform-components/elasticsearch-operator), which is a well made operator. OpenSearch is the Apache 2.0 licensed fork of Elasticsearch, and the one we run for new workloads.
+We would have just kept using Elasticsearch but when we needed to start storing large amounts of k-nn vectors we noticed that OpenSearch offers [derived vector sources](https://opensearch.org/blog/do-more-with-less-save-up-to-3x-on-storage-with-derived-vector-source/) which can reduce storage space for vectors by a factor of x3.
+
+Elasticsearch offers [synthetic source](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/mapping-source-field#synthetic-source) which does more or less the same thing, but sits behind an expensive license paywall.
+
+Hence we moved our vector based workloads to OpenSearch and created this operator to do so.
 
 ## Creating a cluster
 
