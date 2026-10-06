@@ -64,8 +64,8 @@ A set of Prometheus alerts covers all OpenSearch clusters:
 |---|---|---|
 | `OpenSearchClusterRed` | Red for 5 minutes | critical |
 | `OpenSearchClusterYellow` | Yellow for 30 minutes. Rolling restarts and node drains make clusters yellow for a few minutes at a time. | warning |
-| `OpenSearchDiskSpaceLow` | A node's disk is over 80% full. At 85% OpenSearch stops allocating replicas to it. | warning |
-| `OpenSearchDiskSpaceCritical` | Over 90% full. OpenSearch moves shards away from the node, and makes its indices read-only at 95%. | critical |
+| `OpenSearchDiskSpaceLow` | A node's disk is over 80% full for 15 minutes. At 85% OpenSearch stops allocating replicas to it. | warning |
+| `OpenSearchDiskSpaceCritical` | Over 90% full for 5 minutes. OpenSearch moves shards away from the node, and makes its indices read-only at 95%. | critical |
 | `OpenSearchJvmHeapHigh` | Over 90% of the JVM heap used for 15 minutes | warning |
 | `OpenSearchCircuitBreakerTripped` | A circuit breaker rejected requests in the last 10 minutes | warning |
 | `OpenSearchThreadPoolRejections` | Search, write or get requests were rejected in the last 10 minutes | warning |

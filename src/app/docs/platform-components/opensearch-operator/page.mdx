@@ -49,27 +49,6 @@ Elasticsearch offers [synthetic source](https://www.elastic.co/docs/reference/el
 
 Hence we moved our vector based workloads to OpenSearch and created this operator to do so.
 
-## Creating a cluster
+## Usage
 
-The operator is an optional platform component, disabled by default. Enable it and its `k generate` template as described in [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack), then run `k generate resource <application-name> opensearch`. This adds an `OpenSearch` resource under `applications/<application-name>/templates` and outputs the Helm values to add to `applications/<application-name>/values.yaml`.
-
-## Connecting to a cluster
-
-Every cluster gets a Secret called `opensearch-<cluster-name>-credentials`, whose `admin_uri` key holds a connection URL for applications inside Kubernetes:
-
-```yaml
-env:
-  - name: OPENSEARCH_URL
-    valueFrom:
-      secretKeyRef:
-        name: opensearch-<cluster-name>-credentials
-        key: admin_uri
-```
-
-From your local machine:
-
-- `k opensearch:url <cluster-name>` outputs the internal URL
-- `k opensearch:dashboards <cluster-name>` opens OpenSearch Dashboards, which every cluster gets
-- `k opensearch:overview <cluster-name>` shows the health, size and JVM usage of a cluster
-
-See the [OpenSearch Operator documentation](/docs/opensearch-operator/introduction) for installation, the full cluster spec, snapshots, monitoring and how the operator handles restarts, scaling and node drains.
+The operator is an optional platform component, disabled by default. See the [OpenSearch Operator documentation](/docs/opensearch-operator/introduction) for how to enable it, create and connect to clusters, and for snapshots, monitoring and how the operator handles restarts, scaling and node drains.
