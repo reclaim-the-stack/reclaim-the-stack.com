@@ -60,7 +60,7 @@ Note: This make use of Kubernetes [Dependent Environment Variables](https://kube
 
 ### From your local machine
 
-Run `k k port-forward <cluster-name>-es-http 9201:9200` to forward the Elasticsearch HTTP port to your local machine. You can then connect to Elasticsearch using `http://localhost:9201`.
+Run `kubectl port-forward service/<cluster-name>-es-http 9201:9200` to forward the Elasticsearch HTTP port to your local machine. You can then connect to Elasticsearch using `http://localhost:9201`.
 
 A more convenient way to interact towith Elasticsearch from your local machine is to use the developer console in Kibana instead. See [Connecting to Kibana](#connecting-to-kibana) below.
 

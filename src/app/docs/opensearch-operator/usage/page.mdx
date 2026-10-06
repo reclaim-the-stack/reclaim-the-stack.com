@@ -117,7 +117,7 @@ The Secret also holds the passwords of the other built-in users (`readall_passwo
 Forward the client service to a local port:
 
 ```bash
-k k port-forward service/opensearch-<cluster-name>-client 9201:9200
+kubectl port-forward service/opensearch-<cluster-name>-client 9201:9200
 ```
 
 OpenSearch is then reachable at `http://localhost:9201`, with the username `admin` and the password from the `admin_password` key of the credentials Secret.
