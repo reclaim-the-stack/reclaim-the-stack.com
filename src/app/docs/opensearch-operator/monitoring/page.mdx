@@ -1,0 +1,91 @@
+export const metadata = {
+  title: "OpenSearch Operator: Monitoring",
+}
+
+# OpenSearch Operator: Monitoring
+
+## Prometheus metrics
+
+Every OpenSearch node exposes Prometheus metrics at `/_prometheus/metrics`, through the [Prometheus exporter plugin](https://github.com/opensearch-project/opensearch-prometheus-exporter). Scraping requires the `metrics` user, whose password the operator stores in the `opensearch-metrics-basic-auth` Secret in its own namespace. It's the same for all clusters, so a single ServiceMonitor can scrape every cluster.
+
+Index level metrics are disabled by default to keep their high cardinality labels out of Prometheus. Set `prometheus.indices: true` in a cluster's `config` to enable them.
+
+### On Reclaim the Stack
+
+Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters and the Grafana dashboard, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
+
+### On any Kubernetes cluster
+
+Add a ServiceMonitor in the operator's namespace, where it can use the operator's `opensearch-metrics-basic-auth` Secret directly:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: opensearch
+  namespace: opensearch-operator
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: opensearch-operator
+      app.kubernetes.io/name: opensearch
+  endpoints:
+    - port: http
+      scheme: http
+      path: /_prometheus/metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      basicAuth:
+        username:
+          name: opensearch-metrics-basic-auth
+          key: username
+        password:
+          name: opensearch-metrics-basic-auth
+          key: password
+```
+
+Prometheus has to select ServiceMonitors outside its own namespace and without its release label. With `kube-prometheus-stack`, set `prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues: false`, as Reclaim the Stack does.
+
+The selector only matches the headless service of each cluster, which includes pods that aren't ready, so every pod is scraped exactly once. The client service deliberately lacks the `app.kubernetes.io/name` label: a selector which also matched it would scrape every pod twice.
+
+## Grafana dashboard
+
+An OpenSearch dashboard shows the health, nodes, shards and thread pools of each cluster, its indexing and search rates and latencies, caches, JVM heap and garbage collection, and the CPU, memory and disk usage of its nodes.
+
+On Reclaim the Stack it comes with the operator component. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
+
+## Alerts
+
+A set of Prometheus alerts covers all OpenSearch clusters:
+
+| Alert | When | Severity |
+|---|---|---|
+| `OpenSearchClusterRed` | Red for 5 minutes | critical |
+| `OpenSearchClusterYellow` | Yellow for 30 minutes. Rolling restarts and node drains make clusters yellow for a few minutes at a time. | warning |
+| `OpenSearchDiskSpaceLow` | A node's disk is over 80% full for 15 minutes. At 85% OpenSearch stops allocating replicas to it. | warning |
+| `OpenSearchDiskSpaceCritical` | Over 90% full for 5 minutes. OpenSearch moves shards away from the node, and makes its indices read-only at 95%. | critical |
+| `OpenSearchJvmHeapHigh` | Over 90% of the JVM heap used for 15 minutes | warning |
+| `OpenSearchCircuitBreakerTripped` | A circuit breaker rejected requests in the last 10 minutes | warning |
+| `OpenSearchThreadPoolRejections` | Search, write or get requests were rejected in the last 10 minutes | warning |
+
+On Reclaim the Stack, enable the `alerts` component in `platform/opensearch-operator/kustomization.yaml`, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). The alerts show in Prometheus, and notify you through Alertmanager once it's enabled in `platform/kube-prometheus-stack/kustomization.yaml`. Elsewhere, take the PrometheusRule from [`platform/opensearch-operator/alerts/prometheus-rules.yaml`](https://github.com/reclaim-the-stack/get-started/blob/master/platform/opensearch-operator/alerts/prometheus-rules.yaml) in the get-started repository.
+
+## Cluster status
+
+The status of each `OpenSearch` resource shows its health, nodes and version, what the operator is doing, and `Reconciled` and `Ready` conditions, see [Status](/docs/opensearch-operator/cluster-spec#status). The operator also emits events for notable steps and problems, eg. `ReconcileFailed`, `RollingRestartBlocked` or `SnapshotRepositoriesFailed` Warnings:
+
+```bash
+kubectl get opensearch -A
+kubectl describe opensearch <cluster-name>
+kubectl get events --field-selector involvedObject.kind=OpenSearch
+```
+
+## Argo CD
+
+With the [Argo CD health check](/docs/opensearch-operator/installation#argo-cd-health-check) installed, an application whose OpenSearch cluster failed to apply its latest change, or is red, unreachable or rejects the operator's credentials, shows as Degraded in Argo CD, with the reason in the health message.
+
+## The operator itself
+
+The operator logs to stdout, eg. `kubectl logs -n opensearch-operator deployment/opensearch-operator`. With `SENTRY_DSN` set, errors in the operator itself are reported to Sentry, see [Configuration](/docs/opensearch-operator/installation#configuration).

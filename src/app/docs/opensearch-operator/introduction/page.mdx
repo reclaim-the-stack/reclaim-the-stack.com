@@ -1,0 +1,55 @@
+export const metadata = {
+  title: "OpenSearch Operator: Introduction",
+}
+
+# OpenSearch Operator: Introduction
+
+The [OpenSearch Operator](https://github.com/reclaim-the-stack/opensearch-operator) runs [OpenSearch](https://opensearch.org) clusters on Kubernetes. You describe a cluster with an `OpenSearch` resource, and the operator creates and maintains everything it needs: a StatefulSet of OpenSearch nodes, services, generated credentials and certificates, an OpenSearch Dashboards instance, snapshot repositories and a PodDisruptionBudget.
+
+It's the operator behind OpenSearch on Reclaim the Stack, see the [platform component page](/docs/platform-components/opensearch-operator) for why we built it.
+
+```yaml
+apiVersion: opensearch.reclaim-the-stack.com/v1alpha1
+kind: OpenSearch
+metadata:
+  name: search
+spec:
+  replicas: 3
+  diskSize: 50Gi
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 1
+    limits:
+      memory: 8Gi
+```
+
+## What it does
+
+- **Credentials:** generates random passwords for the built-in users (`admin`, `kibanaserver`, `readall` and others) and a ready to use connection URL
+- **Certificates:** generates the transport layer certificates the nodes use to talk to each other, and keeps the admin and CA keys out of the pods
+- **JVM heap:** sizes the heap at half of the memory limit, capped at 31GiB to keep compressed object pointers
+- **Snapshots:** registers S3 snapshot repositories and keeps their snapshot policies in sync with the spec
+- **Rolling restarts:** applies changes which need new pods, eg. a version upgrade, one pod at a time, waiting for green cluster health in between
+- **Scaling:** migrates shards and cluster manager votes off leaving nodes before removing them
+- **Node drains:** keeps a PodDisruptionBudget which only lets drains evict a pod while the cluster is green
+- **Status:** reports health, version, nodes, phase and `Reconciled` and `Ready` conditions on the resource
+- **Metrics:** exposes Prometheus metrics, with a Grafana dashboard to go with them
+
+## Scope
+
+The operator is deliberately limited to what Reclaim the Stack needs:
+
+- All nodes of a cluster are identical, cluster manager eligible data nodes. There are no separate node pools or roles.
+- Clusters have at least 3 nodes.
+- No support for declarative users and roles. Applications connect with credentials created by default such as `admin` or `readall`.
+- The REST API runs without TLS, so clusters should only be reachable on the private network. The transport layer between the nodes uses TLS.
+- It's tested with OpenSearch 3.x.
+
+## Where to go next
+
+- [Installation](/docs/opensearch-operator/installation): deploy the operator with GitOps or `kubectl`
+- [Usage](/docs/opensearch-operator/usage): create clusters, connect applications, use Dashboards and take snapshots
+- [Cluster Spec](/docs/opensearch-operator/cluster-spec): every field of the `OpenSearch` resource, its status, and the resources the operator creates
+- [Operations](/docs/opensearch-operator/operations): upgrades, rolling restarts, scaling, node drains and recovery
+- [Monitoring](/docs/opensearch-operator/monitoring): Prometheus metrics, Grafana and Argo CD health

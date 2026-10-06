@@ -1,0 +1,81 @@
+export const metadata = {
+  title: "OpenSearch Operator: Operations",
+}
+
+# OpenSearch Operator: Operations
+
+How the operator applies changes to running clusters, and what to expect during upgrades, scaling, node maintenance and recovery. `kubectl get opensearch` (the `Phase` column) and `kubectl describe opensearch <cluster-name>` (conditions and events) show what the operator is doing at any time.
+
+## Rolling restarts
+
+Changes which need new pods, such as a new `image`, other `resources`, `config` or snapshot repositories, are rolled out one pod at a time. Kubernetes never restarts the pods on its own (the StatefulSet uses the `OnDelete` update strategy). Instead the operator follows the [OpenSearch rolling upgrade procedure](https://docs.opensearch.org/latest/migrate-or-upgrade/rolling-upgrade/):
+
+1. Wait for all pods to be ready and all nodes to have joined the cluster
+2. Wait for green cluster health
+3. Disable replica shard allocation, flush, and delete the next pod: highest ordinal first, the cluster manager last
+4. Once the pod has rejoined, re-enable replica shard allocation and repeat
+
+Disabling replica allocation keeps the cluster from copying the restarted node's replicas to other nodes while it's away; the node recovers them from its own disk instead. If a restarted pod doesn't rejoin within 10 minutes, eg. because its volume was on a Kubernetes node which is gone, the operator re-enables replica allocation so the missing replicas get rebuilt on the other nodes, and emits a `ReplicaAllocationReenabled` Warning event.
+
+A yellow cluster with no shard recovery in progress is tolerated for 5 minutes, after which the rollout continues with a Warning event, so shards which can't be assigned anyway don't block it forever. A red cluster always blocks the rollout.
+
+Each step mostly waits for the cluster to recover its shards, so how long a rollout takes depends on the amount of data per node. Applications using the cluster keep working throughout. Expect somewhat higher response times for a few minutes after the cluster manager's restart, while a new one is elected.
+
+## Upgrades
+
+To upgrade OpenSearch, change `image` to the new version, eg. from `ghcr.io/reclaim-the-stack/opensearch:3.7.0` to `ghcr.io/reclaim-the-stack/opensearch:3.8.0`, and the operator upgrades the cluster with a rolling restart. OpenSearch Dashboards is upgraded to the same version.
+
+Good to know:
+
+- A cluster without `image` uses the default of the installed operator, so upgrading the operator can upgrade OpenSearch. Set `image` to decide when to upgrade.
+- OpenSearch Dashboards is upgraded right away, while the nodes are upgraded one at a time. Dashboards refuses to work with nodes on an older minor version, so it's unavailable until the rollout has completed.
+- Downgrades aren't supported by OpenSearch: nodes with data written by a newer version don't start on an older one.
+- Upgrades to a new major version need the usual OpenSearch preparations, eg. reindexing indices created two major versions ago.
+
+## Scaling
+
+**Up:** raising `replicas` adds the new nodes right away. OpenSearch then moves shards onto them by itself.
+
+**Down:** lowering `replicas` removes the nodes with the highest ordinals, but only once that's safe. Removing them straight away would delete their volumes with any shard which only had copies on them, and removing half or more of the nodes at once would cost the cluster its quorum. Instead the operator:
+
+1. Waits for the remaining pods to be ready and their nodes to have joined the cluster
+2. Excludes the leaving nodes from shard allocation, and waits for OpenSearch to move their shards to the remaining nodes
+3. Once the leaving nodes hold no shards and no primary shard is unassigned, excludes them from the cluster manager voting configuration and removes their pods and volumes, at most 10 nodes per step
+4. Clears the exclusions once the removed nodes have left the cluster
+
+Raising `replicas` again while shards are moving cancels the scale down. The remaining nodes need room for all shards: the scale down waits for as long as shards can't be moved, eg. when an index has more replicas than the remaining nodes can hold, or their disks are too full. `GET _cluster/allocation/explain` tells why a shard isn't moving.
+
+The operator manages `cluster.routing.allocation.exclude._name` and the voting configuration exclusions, so don't use them to move shards off nodes by hand. `cluster.routing.allocation.exclude._ip` works.
+
+**Disk size:** `diskSize` can't be changed once a cluster exists. To get more disk space, add nodes, or create a new cluster and move the data with a snapshot or reindexing, see [Importing data](/docs/opensearch-operator/usage#importing-data-from-another-cluster).
+
+## Node drains
+
+Each cluster has a PodDisruptionBudget, `opensearch-<cluster-name>`, which the operator keeps up to date. Node drains, eg. during Kubernetes or Talos upgrades, may evict one OpenSearch pod while the cluster is green and no rolling restart or scaling is in progress, and none otherwise. Evicting a pod while the cluster is yellow could take the only copy of a shard offline.
+
+So when you drain nodes one after another, the drain of the next node waits until the cluster has recovered from the previous one. The operator notices green health within about a second, so the next eviction isn't held up any longer than necessary.
+
+A cluster which stays yellow, eg. because an index has more replicas than the nodes can hold, blocks drains until it's fixed. Drains retry blocked evictions until their own timeout. To wait for a cluster before draining the next node:
+
+```bash
+kubectl wait --for=jsonpath='{.status.disruptionsAllowed}'=1 pdb/opensearch-<cluster-name> --timeout=30m
+```
+
+## Bootstrapping
+
+A new cluster bootstraps, ie. elects its first cluster manager, on its first start, however long its pods take to start, eg. while nodes are added or images pulled. Once it has formed, the operator records its UUID in the ConfigMap `opensearch-<cluster-name>-bootstrap`, and nodes started from then on never bootstrap again. That keeps a node which lost its data, and starts while no cluster manager is reachable, from forming a second, empty cluster.
+
+### Recovering from losing all data
+
+If every node of a cluster has lost its data, its pods wait for the cluster that's gone rather than forming a new, empty one. To start over with an empty cluster, delete the bootstrap ConfigMap and then the pods:
+
+```bash
+kubectl delete configmap opensearch-<cluster-name>-bootstrap
+kubectl delete pods -l opensearch.reclaim-the-stack.com/cluster=<cluster-name>,app.kubernetes.io/name=opensearch
+```
+
+The operator records the new cluster once it has formed. Then restore your data from a [snapshot](/docs/opensearch-operator/usage#snapshots).
+
+## Deleting a cluster
+
+Deleting the `OpenSearch` resource, eg. by removing it from your DevOps repository, deletes everything the operator created for it, including the data volumes. Take a snapshot first if you might need the data again.

@@ -214,6 +214,10 @@ export const navigation = [
         href: '/docs/platform-components/elasticsearch-operator',
       },
       {
+        title: 'OpenSearch',
+        href: '/docs/platform-components/opensearch-operator',
+      },
+      {
         title: 'Secrets Management',
         href: '/docs/platform-components/secrets-management',
       },
@@ -244,6 +248,17 @@ export const navigation = [
       { title: 'Introduction', href: '/docs/talos-manager/introduction' },
       { title: 'Installation', href: '/docs/talos-manager/installation' },
       { title: 'Usage', href: '/docs/talos-manager/usage' },
+    ],
+  },
+  {
+    title: 'OpenSearch Operator',
+    links: [
+      { title: 'Introduction', href: '/docs/opensearch-operator/introduction' },
+      { title: 'Installation', href: '/docs/opensearch-operator/installation' },
+      { title: 'Usage', href: '/docs/opensearch-operator/usage' },
+      { title: 'Cluster Spec', href: '/docs/opensearch-operator/cluster-spec' },
+      { title: 'Operations', href: '/docs/opensearch-operator/operations' },
+      { title: 'Monitoring', href: '/docs/opensearch-operator/monitoring' },
     ],
   },
 ]

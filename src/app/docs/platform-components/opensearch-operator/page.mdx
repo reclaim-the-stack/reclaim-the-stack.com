@@ -1,0 +1,54 @@
+export const metadata = {
+  title: "OpenSearch: Reclaim the Stack OpenSearch Operator",
+}
+
+# OpenSearch: Reclaim the Stack OpenSearch Operator
+
+For OpenSearch we use our own Kubernetes operator. It's tightly scoped to how Reclaim the Stack runs search clusters, and it's written in Ruby like the rest of our tooling.
+
+Github: https://github.com/reclaim-the-stack/opensearch-operator<br />
+Documentation: [OpenSearch Operator](/docs/opensearch-operator/introduction)
+
+## Architecture Decision Record
+
+We started out with the official OpenSearch operator, but ran into enough problems that writing our own turned out to be the better option. Keeping the scope narrow is what makes that sustainable: the operator does what we need, and does it carefully, rather than trying to cover every possible OpenSearch topology.
+
+### Pros
+
+- Runs current OpenSearch versions
+- Random passwords for all built-in users, and a ready to use connection URL in a Secret
+- Declarative snapshot management: S3 repositories and snapshot policies are part of the cluster spec
+- Health gated rolling restarts, safe scale downs and a PodDisruptionBudget which follows cluster health, so neither changes to the spec nor node drains during Kubernetes upgrades take down more than one node at a time
+- Status conditions which work with `kubectl wait` and Argo CD health checks
+- Prometheus metrics and a Grafana dashboard
+- A small codebase (around 1,700 lines of Ruby) which we can read and change ourselves
+
+### Cons
+
+- Deliberately limited scope: all nodes of a cluster are identical cluster manager eligible data nodes, there's no support for custom users and roles, and clusters need at least 3 nodes
+- The REST API runs without TLS, which assumes clusters are only reachable on the private network
+- The disk size of a cluster can't be changed after it was created (since our platform uses local storage, actual disk size is always equal to the space remaining on disk in any case)
+
+### Alternatives Considered
+
+#### Official OpenSearch Kubernetes Operator
+
+The [official operator](https://github.com/opensearch-project/opensearch-k8s-operator) was our first choice. In practice we hit too many issues:
+
+- It couldn't deploy OpenSearch versions released after early 2024
+- Its certificate generation didn't work, and would only have created certificates with a one year TTL and no rotation
+- No generated passwords for the built-in users
+- A large number of open bugs with little movement on them
+- Admin credentials readily available on disk in the OpenSearch pods
+
+#### Elasticsearch with Elastic Cloud Kubernetes
+
+We would have just kept using Elasticsearch but when we needed to start storing large amounts of k-nn vectors we noticed that OpenSearch offers [derived vector sources](https://opensearch.org/blog/do-more-with-less-save-up-to-3x-on-storage-with-derived-vector-source/) which can reduce storage space for vectors by a factor of x3.
+
+Elasticsearch offers [synthetic source](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/mapping-source-field#synthetic-source) which does more or less the same thing, but sits behind an expensive license paywall.
+
+Hence we moved our vector based workloads to OpenSearch and created this operator to do so.
+
+## Usage
+
+The operator is an optional platform component, disabled by default. See the [OpenSearch Operator documentation](/docs/opensearch-operator/introduction) for how to enable it, create and connect to clusters, and for snapshots, monitoring and how the operator handles restarts, scaling and node drains.

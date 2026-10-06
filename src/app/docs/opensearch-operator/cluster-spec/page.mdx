@@ -1,0 +1,197 @@
+export const metadata = {
+  title: "OpenSearch Operator: Cluster Spec",
+}
+
+# OpenSearch Operator: Cluster Spec
+
+An OpenSearch cluster is described by an `OpenSearch` resource, in the API group `opensearch.reclaim-the-stack.com/v1alpha1`. This page describes its fields, its status, and the Kubernetes resources the operator creates for it. `kubectl explain opensearch.spec` shows the same fields from the CRD.
+
+## Example
+
+A cluster using every field:
+
+```yaml
+apiVersion: opensearch.reclaim-the-stack.com/v1alpha1
+kind: OpenSearch
+metadata:
+  name: search
+  namespace: default
+spec:
+  image: ghcr.io/reclaim-the-stack/opensearch:3.8.0
+  replicas: 3
+  diskSize: 100Gi
+  resources:
+    requests:
+      memory: 16Gi
+      cpu: 2
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    node-role.kubernetes.io/database: ""
+  tolerations:
+    - key: role
+      value: database
+      effect: NoSchedule
+  config:
+    indices.query.bool.max_clause_count: 4096
+    reindex.remote.allowlist: "old-cluster:9200"
+  snapshotRepositories:
+    - name: backups
+      type: s3
+      bucket: my-backups
+      base_path: opensearch/search
+      endpoint: s3.eu-central-1.amazonaws.com
+      region: eu-central-1
+      accessKeyId:
+        name: opensearch-s3-credentials
+        key: AWS_ACCESS_KEY_ID
+      secretAccessKey:
+        name: opensearch-s3-credentials
+        key: AWS_SECRET_ACCESS_KEY
+      policies:
+        - name: daily
+          schedule: 0 0 * * *
+          max_age: 30d
+```
+
+Only `diskSize` and the memory of `resources` have to be set, everything else has a default or is optional.
+
+## Spec
+
+<Properties>
+  <Property name="image" type="string">
+    The OpenSearch image. Its tag must be the OpenSearch version, eg. `3.8.0`: the operator reads the version from it, and uses it to pick the matching OpenSearch Dashboards image and Prometheus exporter plugin.
+
+    Defaults to `ghcr.io/reclaim-the-stack/opensearch:3.8.0`, an image with the plugins the operator uses pre-installed, built for the versions listed in the operator repository. The official `opensearchproject/opensearch` images work as well, but download the plugins on every pod start.
+
+    The default changes with new operator releases, so a cluster without `image` can be upgraded by upgrading the operator. Set it explicitly to decide when to upgrade. Changing it upgrades the cluster with a [rolling restart](/docs/opensearch-operator/operations#rolling-restarts).
+  </Property>
+  <Property name="replicas" type="integer">
+    The number of OpenSearch nodes, at least 3 and 3 by default. All nodes are cluster manager eligible data nodes.
+
+    Raising it adds nodes right away. Lowering it migrates the shards off the nodes which leave before removing them, see [Scaling](/docs/opensearch-operator/operations#scaling).
+  </Property>
+  <Property name="diskSize" type="string">
+    The size of each node's data volume, as a whole number of `M`, `G`, `T` or `P`, or `Mi`, `Gi`, `Ti` or `Pi`, eg. `100Gi`.
+
+    It can't be changed after the cluster was created, since the volume claim templates of a StatefulSet are immutable. Writing the same size in another unit, eg. `1024Mi` for `1Gi`, is allowed. With hostpath storage, such as `openebs-hostpath`, the size isn't enforced and OpenSearch sees the whole filesystem of its node.
+  </Property>
+  <Property name="resources" type="object">
+    Standard Kubernetes resource requests and limits for the OpenSearch containers. `requests.memory` and `limits.memory` are required: a whole number of `Mi` or `Gi`, at least `4Gi`. Other resources, eg. `cpu`, are passed through as they are.
+
+    The JVM heap gets half of the memory limit, capped at 31GiB so the JVM keeps using compressed object pointers. The rest is left for the operating system's file cache, which OpenSearch relies on.
+  </Property>
+  <Property name="nodeSelector" type="object">
+    Node labels the OpenSearch pods have to be scheduled on, eg. `node-role.kubernetes.io/database: ""`.
+  </Property>
+  <Property name="tolerations" type="array">
+    Tolerations for the OpenSearch pods, in the standard Kubernetes format, eg. for taints which reserve nodes for databases.
+  </Property>
+  <Property name="config" type="object">
+    Additional OpenSearch settings added to `opensearch.yml`, in flat (`indices.query.bool.max_clause_count: 4096`) or nested YAML form.
+
+    Settings the operator depends on can't be set here: `cluster.name`, `node.name`, `network.host`, discovery and bootstrap settings, the transport TLS and security settings, and the `s3.client.<repository>.*` settings of snapshot repositories. A spec which sets them isn't applied, and the `Reconciled` condition names the settings.
+
+    The operator's defaults for `prometheus.indices` (`false`, to keep high cardinality index metrics out of Prometheus) and the transport `enforce_hostname_verification` and `resolve_hostname` settings (`false`) can be overridden. Changing `config` restarts the cluster's pods.
+  </Property>
+  <Property name="snapshotRepositories" type="array">
+    S3 snapshot repositories to register in the cluster, each with its snapshot policies. Empty by default. See [Snapshots](/docs/opensearch-operator/usage#snapshots) for how to set them up.
+  </Property>
+</Properties>
+
+### Snapshot repositories
+
+<Properties>
+  <Property name="name" type="string">
+    The name of the repository inside OpenSearch. Also used to name its snapshot policies.
+  </Property>
+  <Property name="type" type="string">
+    The repository type. Only `s3` is supported, which is also the default.
+  </Property>
+  <Property name="bucket" type="string">
+    The bucket which stores the snapshots.
+  </Property>
+  <Property name="base_path" type="string">
+    The path within the bucket, eg. `opensearch/<cluster-name>`. Use a separate path per cluster.
+  </Property>
+  <Property name="endpoint" type="string">
+    The endpoint of an S3 compatible object storage, eg. `hel1.your-objectstorage.com` or `s3.eu-central-2.wasabisys.com`. Defaults to AWS, `s3.<region>.amazonaws.com`.
+  </Property>
+  <Property name="region" type="string">
+    The bucket's region. Defaults to `us-east-1`.
+  </Property>
+  <Property name="protocol" type="string">
+    `https` (the default) or `http`.
+  </Property>
+  <Property name="accessKeyId" type="object">
+    The `name` of a Secret in the cluster's namespace and the `key` within it which holds the access key ID.
+  </Property>
+  <Property name="secretAccessKey" type="object">
+    The `name` of a Secret in the cluster's namespace and the `key` within it which holds the secret access key.
+  </Property>
+  <Property name="policies" type="array">
+    Snapshot policies for the repository. Each has a `name`, a cron `schedule` in UTC, eg. `0 0 * * *` for every midnight, and a `max_age` after which its snapshots are deleted, eg. `30d`. The operator creates them as `<repository>-<policy>`, and deletes policies of the repository which are no longer listed.
+  </Property>
+</Properties>
+
+## Status
+
+`kubectl get opensearch` shows the most important parts of the status:
+
+```
+NAME     VERSION   HEALTH   NODES   READY   PHASE
+search   3.8.0     Green    3       True    Running
+```
+
+<Properties>
+  <Property name="version" type="string">
+    The OpenSearch version the cluster's nodes run.
+  </Property>
+  <Property name="health" type="string">
+    The cluster health: `Green`, `Yellow` or `Red`. `Unreachable` when the operator can't reach the cluster's REST API, eg. while it starts, and `Unauthorized` when OpenSearch rejects the operator's admin credentials.
+  </Property>
+  <Property name="nodes" type="integer">
+    The number of nodes which are part of the cluster.
+  </Property>
+  <Property name="phase" type="string">
+    What the operator is doing with the cluster: `Running` when there's nothing to do, otherwise eg. `Rolling restart: restarting opensearch-search-2 (2 pods remaining)` or `Scaling down: migrating 12 shards off opensearch-search-3`.
+  </Property>
+  <Property name="conditions" type="array">
+    Two standard conditions, shown with `kubectl describe opensearch <cluster-name>`:
+
+    - `Reconciled` tells whether the latest generation of the spec was applied. If it wasn't, its reason is `ReconcileFailed` and its message holds the error. Failed reconciliations are retried at most once a minute, on the next change of the spec and on the operator's periodic resync.
+    - `Ready` is `True`, with reason `Running`, once the latest generation was applied, the cluster is reachable, its health isn't red and no rolling restart or scaling is in progress. Yellow health counts as ready. Otherwise its reason is `ReconcileFailed`, `Unreachable`, `Unauthorized`, `HealthRed`, `Progressing` or `Deleting`.
+  </Property>
+</Properties>
+
+`kubectl wait --for=condition=Ready opensearch/<cluster-name>` waits for a cluster to become ready, eg. in a deployment script. The operator also emits events, eg. for each pod a rolling restart restarts, shown by `kubectl describe opensearch <cluster-name>`.
+
+## Created resources
+
+For a cluster called `<name>`, the operator creates:
+
+| Resource | Name | Purpose |
+|---|---|---|
+| StatefulSet | `opensearch-<name>` | The OpenSearch nodes |
+| PersistentVolumeClaims | `data-opensearch-<name>-<ordinal>` | The nodes' data |
+| Service | `opensearch-<name>` | Headless service for the nodes: HTTP (9200), transport (9300) and metrics (9600) |
+| Service | `opensearch-<name>-client` | For clients, on port 9200 |
+| Deployment and Service | `opensearch-dashboards-<name>` | OpenSearch Dashboards, on port 5601 |
+| Secret | `opensearch-<name>-credentials` | Generated passwords and the connection URL, see below |
+| Secret | `opensearch-<name>-certificates` | The transport layer certificates |
+| ConfigMap | `opensearch-<name>-security-config` | The security plugin's users and roles |
+| ConfigMap | `opensearch-<name>-bootstrap` | Records that the cluster has formed, see [Bootstrapping](/docs/opensearch-operator/operations#bootstrapping) |
+| PodDisruptionBudget | `opensearch-<name>` | Limits evictions by node drains, see [Node drains](/docs/opensearch-operator/operations#node-drains) |
+
+All of them belong to the `OpenSearch` resource, so deleting it deletes them, including the data volumes.
+
+### Credentials
+
+The `opensearch-<name>-credentials` Secret holds:
+
+- `admin_uri`: a URL for the `admin` user and the client service, for applications
+- `admin_password`: the password of the `admin` user
+- `kibanaserver_password`, `readall_password`, `snapshotrestore_password`, `logstash_password` and `anomalyadmin_password`: the passwords of the security plugin's other built-in users
+- `metrics_password`: the password of the `metrics` user Prometheus scrapes metrics with. It's the same for all clusters of an operator installation, see [Monitoring](/docs/opensearch-operator/monitoring).
+
+The passwords are generated when the cluster is created, and stay the same afterwards.

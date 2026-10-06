@@ -1,0 +1,217 @@
+export const metadata = {
+  title: "OpenSearch Operator: Usage",
+}
+
+# OpenSearch Operator: Usage
+
+This page covers day to day use of OpenSearch on Reclaim the Stack with [k](https://github.com/reclaim-the-stack/k). For every field of the `OpenSearch` resource, see the [Cluster Spec](/docs/opensearch-operator/cluster-spec).
+
+## Creating a cluster
+
+On Reclaim the Stack, enable the operator component first, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack).
+
+`k generate resource` creates resources from the templates in the `generators/resources` directory of your DevOps repository. The platform comes with this OpenSearch template in `generators/resources/disabled`, from where enabling the operator moves it to `generators/resources/opensearch.yaml`:
+
+```yaml
+# Creates an OpenSearch cluster with an accompanying Dashboards instance.
+# Requires the opensearch-operator platform component, see the README. Move this file to
+# generators/resources/ to make it available to `k generate resource`.
+#
+# Example values.yaml:
+# resources:
+#   %{camelName}:
+#     replicas: 3 # Note: minimum of 3 replicas, each on its own database node
+#     memory: 4Gi # Note: minimum of 4Gi
+#     cpu: 1
+#     disk: 10Gi
+# env:
+#   - { name: OPENSEARCH_URL, valueFrom: { secretKeyRef: { name: opensearch-%{application}%{suffix}-credentials, key: admin_uri } } }
+
+apiVersion: opensearch.reclaim-the-stack.com/v1alpha1
+kind: OpenSearch
+metadata:
+  name: {{ .Chart.Name }}%{suffix}
+spec:
+  image: ghcr.io/reclaim-the-stack/opensearch:3.8.0
+  replicas: {{ .Values.resources.%{camelName}.replicas }}
+  diskSize: {{ .Values.resources.%{camelName}.disk }}
+  # Add arbitrary OpenSearch settings to opensearch.yml
+  # config:
+  #   reindex.remote.allowlist: "remote-cluster:9200"
+  nodeSelector:
+    node-role.kubernetes.io/database: ""
+  tolerations:
+    - key: role
+      value: database
+      effect: NoSchedule
+  resources:
+    requests:
+      memory: {{ .Values.resources.%{camelName}.memory }}
+      cpu: {{ .Values.resources.%{camelName}.cpu | quote }}
+    limits:
+      memory: {{ .Values.resources.%{camelName}.memory }}
+  # Add an S3 credentials secret and uncomment to take daily snapshots, see
+  # https://reclaim-the-stack.com/docs/opensearch-operator/usage#snapshots
+  # snapshotRepositories:
+  #   - name: backups
+  #     type: s3
+  #     bucket: <bucket>
+  #     base_path: opensearch/{{ .Chart.Name }}%{suffix}
+  #     endpoint: <s3-endpoint>
+  #     region: <region>
+  #     accessKeyId:
+  #       name: opensearch-s3-credentials
+  #       key: AWS_ACCESS_KEY_ID
+  #     secretAccessKey:
+  #       name: opensearch-s3-credentials
+  #       key: AWS_SECRET_ACCESS_KEY
+  #     policies:
+  #       - name: daily
+  #         schedule: 0 0 * * * # every day at midnight UTC
+  #         max_age: 30d
+```
+
+Tweak the template to change the defaults of every cluster created with `k generate`, eg. the node selector and tolerations if your database nodes are set up differently.
+
+Then, in your DevOps repository, run:
+
+```bash
+k generate resource <application-name> opensearch
+```
+
+This adds an `OpenSearch` resource under `applications/<application-name>/templates` and prints the values to add to `applications/<application-name>/values.yaml`. Commit and push, and Argo CD creates the resource. The operator then brings up the cluster, which takes a few minutes the first time. Follow along with:
+
+```bash
+kubectl get opensearch
+```
+
+Or wait for it to become ready:
+
+```bash
+kubectl wait --for=condition=Ready opensearch/<cluster-name> --timeout=15m
+```
+
+## Connecting to a cluster
+
+### From inside Kubernetes
+
+Every cluster gets a Secret called `opensearch-<cluster-name>-credentials`. Its `admin_uri` key holds a URL including the admin credentials and the cluster's client service, eg. `http://admin:<password>@opensearch-<cluster-name>-client.default.svc.cluster.local:9200`.
+
+Add it to the `env` array of your application's `values.yaml`:
+
+```yaml
+env:
+  - name: OPENSEARCH_URL
+    valueFrom:
+      secretKeyRef:
+        name: opensearch-<cluster-name>-credentials
+        key: admin_uri
+```
+
+`k opensearch:url <cluster-name>` prints the same URL.
+
+The Secret also holds the passwords of the other built-in users (`readall_password`, `snapshotrestore_password` and so on), see the [Cluster Spec](/docs/opensearch-operator/cluster-spec#created-resources).
+
+### From your local machine
+
+Forward the client service to a local port:
+
+```bash
+kubectl port-forward service/opensearch-<cluster-name>-client 9201:9200
+```
+
+OpenSearch is then reachable at `http://localhost:9201`, with the username `admin` and the password from the `admin_password` key of the credentials Secret.
+
+## OpenSearch Dashboards
+
+Every cluster gets an [OpenSearch Dashboards](https://opensearch.org/docs/latest/dashboards/) instance, on the same version as the cluster. To open it:
+
+```bash
+k opensearch:dashboards <cluster-name>
+```
+
+`k` forwards a local port to Dashboards, copies the admin password to your clipboard (on macOS) and prints the URL. Log in with the username `admin`.
+
+Dev Tools in Dashboards is the most convenient way to run OpenSearch API requests by hand.
+
+## Cluster overview
+
+```bash
+k opensearch:overview <cluster-name>
+```
+
+Shows the cluster's health, the size of its data, and the JVM heap usage of its nodes.
+
+## Snapshots
+
+The operator manages [snapshot repositories](https://opensearch.org/docs/latest/tuning-your-cluster/availability-and-recovery/snapshots/snapshot-restore/) and [snapshot policies](https://opensearch.org/docs/latest/tuning-your-cluster/availability-and-recovery/snapshots/snapshot-management/) declaratively. Any S3 compatible object storage works.
+
+First, create a Secret with the S3 credentials, in the same namespace as the cluster. With Sealed Secrets:
+
+```bash
+kubectl create secret generic opensearch-s3-credentials --dry-run=client \
+  --from-literal=AWS_ACCESS_KEY_ID=<access-key> \
+  --from-literal=AWS_SECRET_ACCESS_KEY=<secret-key> \
+  -o yaml | kubeseal -o yaml > applications/<application-name>/templates/opensearch-s3-credentials.yaml
+```
+
+Then add a repository to the cluster's spec:
+
+```yaml
+spec:
+  snapshotRepositories:
+    - name: backups
+      type: s3
+      bucket: my-backups
+      base_path: opensearch/<cluster-name>
+      endpoint: s3.eu-central-1.amazonaws.com
+      region: eu-central-1
+      accessKeyId:
+        name: opensearch-s3-credentials
+        key: AWS_ACCESS_KEY_ID
+      secretAccessKey:
+        name: opensearch-s3-credentials
+        key: AWS_SECRET_ACCESS_KEY
+      policies:
+        - name: daily
+          schedule: 0 0 * * *
+          max_age: 30d
+```
+
+Adding a repository restarts the cluster's pods, one at a time, since the credentials go into each node's keystore. Once the restart has completed, the operator registers the repository and creates a snapshot policy called `<repository>-<policy>` for each policy, here `backups-daily`. Snapshots include all indices except the security index.
+
+If registering a repository fails, eg. because the bucket doesn't exist or the credentials are wrong, the operator emits a `SnapshotRepositoriesFailed` Warning event and retries with a backoff, from 5 minutes up to an hour. Check with `kubectl describe opensearch <cluster-name>`.
+
+Good to know:
+
+- Policies removed from a repository's `policies` are deleted. Removing a whole repository from the spec leaves its policies in place, delete them through the [Snapshot Management API](https://opensearch.org/docs/latest/api-reference/snapshots/sm-api/) if needed.
+- Changed credentials in the Secret only reach the keystore when the pods restart.
+
+### Restoring a snapshot
+
+The operator doesn't restore snapshots itself. List the snapshots of a repository, eg. in Dev Tools:
+
+```
+GET _snapshot/backups/_all
+```
+
+And restore the indices you need:
+
+```
+POST _snapshot/backups/<snapshot-name>/_restore
+{
+  "indices": "my-index",
+  "include_global_state": false
+}
+```
+
+Indices which already exist in the cluster have to be closed or deleted before they can be restored, or restored under another name with `rename_pattern` and `rename_replacement`.
+
+## Importing data from another cluster
+
+To migrate from an existing Elasticsearch or OpenSearch cluster, there are two options:
+
+- **Snapshots:** take a snapshot of the old cluster into a bucket the new cluster can read, add that bucket as a repository of the new cluster, and restore from it. A snapshot can be restored into a cluster of the same or the next major version.
+- **Reindex from remote:** allow the old cluster as a remote in the new cluster's `config` (`reindex.remote.allowlist: "old-cluster:9200"`), then copy indices with the [reindex API](https://opensearch.org/docs/latest/api-reference/document-apis/reindex/). That works across versions, and is often the simpler option for smaller indices.
+
+Sometimes it's easier still to rebuild the indices from their source data.
