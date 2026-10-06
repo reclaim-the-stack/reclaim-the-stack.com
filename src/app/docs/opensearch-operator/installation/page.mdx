@@ -17,24 +17,30 @@ An OpenSearch cluster needs at least 3 Kubernetes nodes with 4Gi of memory to sp
 
 ## On Reclaim the Stack
 
-The operator is an optional component of the platform, disabled by default. To enable it, move its Argo CD Application out of the `disabled` directory of your DevOps repository:
+The operator is an optional component of the platform, disabled by default. To enable it, move its Argo CD Application and the `k generate` template for OpenSearch clusters out of the `disabled` directories of your DevOps repository:
 
 ```bash
 mv platform-applications/disabled/opensearch-operator.yaml platform-applications/
-git add platform-applications
+mv generators/resources/disabled/opensearch.yaml generators/resources/
+git add generators platform-applications
 git commit -m "Enable the OpenSearch operator"
 git push
 ```
 
-Argo CD then installs `platform/opensearch-operator`, which holds:
+Argo CD then installs `platform/opensearch-operator`: the operator, at the release referenced in `platform/opensearch-operator/kustomization.yaml`, and a ServiceMonitor, so Prometheus scrapes the metrics of all OpenSearch clusters.
 
-- the operator, at the release referenced in `platform/opensearch-operator/kustomization.yaml`
-- a ServiceMonitor, so Prometheus scrapes the metrics of all OpenSearch clusters, see [Monitoring](/docs/opensearch-operator/monitoring)
-- the OpenSearch dashboard for Grafana
+The same Kustomization has two optional components, a Grafana dashboard and Prometheus alerts for OpenSearch clusters. Uncomment them to enable them:
 
-The platform also comes with the [Argo CD health check](#argo-cd-health-check) for OpenSearch clusters (in `platform/argocd/config.yaml`) and a `k generate` template for them (`generators/resources/opensearch.yaml`), so you can go on with [creating a cluster](/docs/opensearch-operator/usage#creating-a-cluster).
+```yaml
+# platform/opensearch-operator/kustomization.yaml
+components:
+  - ./grafana-dashboard
+  - ./alerts
+```
 
-If your DevOps repository was created from [get-started](https://github.com/reclaim-the-stack/get-started) before the operator was added, copy these files from it: `platform-applications/disabled/opensearch-operator.yaml`, the `platform/opensearch-operator` directory, `generators/resources/opensearch.yaml`, and the OpenSearch health check in `platform/argocd/config.yaml`.
+See [Monitoring](/docs/opensearch-operator/monitoring) for what they include. The platform also comes with the [Argo CD health check](#argo-cd-health-check) for OpenSearch clusters, in `platform/argocd/config.yaml`. You can now go on with [creating a cluster](/docs/opensearch-operator/usage#creating-a-cluster).
+
+If your DevOps repository was created from [get-started](https://github.com/reclaim-the-stack/get-started) before the operator was added, copy these from it: `platform-applications/disabled/opensearch-operator.yaml`, the `platform/opensearch-operator` directory, `generators/resources/disabled/opensearch.yaml`, and the OpenSearch health check in `platform/argocd/config.yaml`.
 
 ## On other Kubernetes clusters
 

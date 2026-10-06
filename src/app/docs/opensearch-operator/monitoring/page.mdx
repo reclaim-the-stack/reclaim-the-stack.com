@@ -12,7 +12,7 @@ Index level metrics are disabled by default to keep their high cardinality label
 
 ### On Reclaim the Stack
 
-Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters and the OpenSearch dashboard for Grafana, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
+Enabling the operator component also installs a ServiceMonitor for all OpenSearch clusters, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). There's nothing else to set up.
 
 ### On other Kubernetes clusters
 
@@ -52,7 +52,25 @@ The selector only matches the headless service of each cluster, which includes p
 
 ## Grafana dashboard
 
-On Reclaim the Stack the OpenSearch dashboard comes with the operator component. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
+An OpenSearch dashboard shows the health, nodes, shards and thread pools of each cluster, its indexing and search rates and latencies, caches, JVM heap and garbage collection, and the CPU, memory and disk usage of its nodes.
+
+On Reclaim the Stack, enable the `grafana-dashboard` component in `platform/opensearch-operator/kustomization.yaml`, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). Grafana then picks it up on its own. Elsewhere, import [`examples/opensearch-grafana-dashboard.json`](https://github.com/reclaim-the-stack/opensearch-operator/blob/master/examples/opensearch-grafana-dashboard.json) from the operator repository in Grafana.
+
+## Alerts
+
+A set of Prometheus alerts covers all OpenSearch clusters:
+
+| Alert | When | Severity |
+|---|---|---|
+| `OpenSearchClusterRed` | Red for 5 minutes | critical |
+| `OpenSearchClusterYellow` | Yellow for 30 minutes. Rolling restarts and node drains make clusters yellow for a few minutes at a time. | warning |
+| `OpenSearchDiskSpaceLow` | A node's disk is over 80% full. At 85% OpenSearch stops allocating replicas to it. | warning |
+| `OpenSearchDiskSpaceCritical` | Over 90% full. OpenSearch moves shards away from the node, and makes its indices read-only at 95%. | critical |
+| `OpenSearchJvmHeapHigh` | Over 90% of the JVM heap used for 15 minutes | warning |
+| `OpenSearchCircuitBreakerTripped` | A circuit breaker rejected requests in the last 10 minutes | warning |
+| `OpenSearchThreadPoolRejections` | Search, write or get requests were rejected in the last 10 minutes | warning |
+
+On Reclaim the Stack, enable the `alerts` component in `platform/opensearch-operator/kustomization.yaml`, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack). The alerts show in Prometheus, and notify you through Alertmanager once it's enabled in `platform/kube-prometheus-stack/kustomization.yaml`. Elsewhere, take the PrometheusRule from [`platform/opensearch-operator/alerts/prometheus-rules.yaml`](https://github.com/reclaim-the-stack/get-started/blob/master/platform/opensearch-operator/alerts/prometheus-rules.yaml) in the get-started repository.
 
 ## Cluster status
 

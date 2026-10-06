@@ -10,11 +10,12 @@ This page covers day to day use of OpenSearch on Reclaim the Stack with [k](http
 
 On Reclaim the Stack, enable the operator component first, see [Installation](/docs/opensearch-operator/installation#on-reclaim-the-stack).
 
-`k generate resource` creates resources from the templates in the `generators/resources` directory of your DevOps repository. The platform comes with this OpenSearch template as `generators/resources/opensearch.yaml`. Add it if your repository doesn't have it yet:
+`k generate resource` creates resources from the templates in the `generators/resources` directory of your DevOps repository. The platform comes with this OpenSearch template in `generators/resources/disabled`, from where enabling the operator moves it to `generators/resources/opensearch.yaml`. Add it if your repository doesn't have it yet:
 
 ```yaml
 # Creates an OpenSearch cluster with an accompanying Dashboards instance.
-# Requires the opensearch-operator platform component, see the README.
+# Requires the opensearch-operator platform component, see the README. Move this file to
+# generators/resources/ to make it available to `k generate resource`.
 #
 # Example values.yaml:
 # resources:
