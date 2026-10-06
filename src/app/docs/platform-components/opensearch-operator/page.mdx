@@ -27,8 +27,7 @@ We started out with the official OpenSearch operator, but ran into enough proble
 
 - Deliberately limited scope: all nodes of a cluster are identical cluster manager eligible data nodes, there's no support for custom users and roles, and clusters need at least 3 nodes
 - The REST API runs without TLS, which assumes clusters are only reachable on the private network
-- The disk size of a cluster can't be changed after it was created
-- Maintained by us rather than by the OpenSearch project
+- The disk size of a cluster can't be changed after it was created (since our platform uses local storage, actual disk size is always equal to the space remaining on disk in any case)
 
 ### Alternatives Considered
 
