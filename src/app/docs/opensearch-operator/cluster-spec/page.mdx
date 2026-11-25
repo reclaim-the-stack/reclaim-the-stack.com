@@ -18,6 +18,7 @@ metadata:
   namespace: default
 spec:
   image: ghcr.io/reclaim-the-stack/opensearch:3.8.0
+  dashboardsImage: opensearchproject/opensearch-dashboards:3.8.0
   replicas: 3
   diskSize: 100Gi
   resources:
@@ -60,11 +61,18 @@ Only `diskSize` and the memory of `resources` have to be set, everything else ha
 
 <Properties>
   <Property name="image" type="string">
-    The OpenSearch image. Its tag must be the OpenSearch version, eg. `3.8.0`: the operator reads the version from it, and uses it to pick the matching OpenSearch Dashboards image and Prometheus exporter plugin.
+    The OpenSearch image. Its tag must be the OpenSearch version, eg. `3.8.0`: the operator reads the version from it, and uses it to pick the matching OpenSearch Dashboards image (unless `dashboardsImage` is set) and Prometheus exporter plugin.
 
     Defaults to `ghcr.io/reclaim-the-stack/opensearch:3.8.0`, an image with the plugins the operator uses pre-installed, built for the versions listed in the operator repository. The official `opensearchproject/opensearch` images work as well, but download the plugins on every pod start.
 
     The default changes with new operator releases, so a cluster without `image` can be upgraded by upgrading the operator. Set it explicitly to decide when to upgrade. Changing it upgrades the cluster with a [rolling restart](/docs/opensearch-operator/operations#rolling-restarts).
+  </Property>
+  <Property name="dashboardsImage" type="string">
+    The OpenSearch Dashboards image. Defaults to `opensearchproject/opensearch-dashboards` with the tag of `image`.
+
+    Not every OpenSearch release comes with a Dashboards release, eg. there's no Dashboards 3.10.1, and the Dashboards pod of such a version can't pull its image. Set it to the latest Dashboards release of the same minor version then, eg. `opensearchproject/opensearch-dashboards:3.10.0` with OpenSearch 3.10.1. Dashboards works with nodes of the same major version which aren't on an older minor version than itself.
+
+    Needs operator 0.17.0 or later.
   </Property>
   <Property name="replicas" type="integer">
     The number of OpenSearch nodes, at least 3 and 3 by default. All nodes are cluster manager eligible data nodes.

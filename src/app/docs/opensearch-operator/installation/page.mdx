@@ -39,7 +39,7 @@ The operator is installed from the `deploy/` directory of its repository, a Kust
 - a ServiceAccount with a ClusterRole, since the operator manages clusters in any namespace
 - the operator Deployment, running `ghcr.io/reclaim-the-stack/opensearch-operator`
 
-See the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases) for the latest version, the examples below use `v0.16.0`.
+See the [releases](https://github.com/reclaim-the-stack/opensearch-operator/releases) for the latest version, the examples below use `v0.17.0`.
 
 ### With GitOps
 
@@ -50,7 +50,7 @@ Reference a release of the operator from a Kustomization:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0
+  - github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.17.0
 ```
 
 And sync it with your GitOps tool. With Argo CD, an Application along these lines:
@@ -80,7 +80,7 @@ spec:
 Apply a release directly:
 
 ```bash
-kubectl apply -k "github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.16.0"
+kubectl apply -k "github.com/reclaim-the-stack/opensearch-operator/deploy?ref=v0.17.0"
 ```
 
 Either way, the operator is running once its pod is ready:

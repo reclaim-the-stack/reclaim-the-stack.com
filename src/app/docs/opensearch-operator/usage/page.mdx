@@ -123,7 +123,7 @@ OpenSearch is then reachable at `http://localhost:9201`, with the username `admi
 
 ## OpenSearch Dashboards
 
-Every cluster gets an [OpenSearch Dashboards](https://opensearch.org/docs/latest/dashboards/) instance, on the same version as the cluster. To open it:
+Every cluster gets an [OpenSearch Dashboards](https://opensearch.org/docs/latest/dashboards/) instance, on the same version as the cluster unless [`dashboardsImage`](/docs/opensearch-operator/cluster-spec#spec) is set. To open it:
 
 ```bash
 k opensearch:dashboards <cluster-name>
