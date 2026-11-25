@@ -17,8 +17,8 @@ metadata:
   name: search
   namespace: default
 spec:
-  image: ghcr.io/reclaim-the-stack/opensearch:3.8.0
-  dashboardsImage: opensearchproject/opensearch-dashboards:3.8.0
+  image: ghcr.io/reclaim-the-stack/opensearch:3.10.1
+  dashboardsImage: opensearchproject/opensearch-dashboards:3.10.0
   replicas: 3
   diskSize: 100Gi
   resources:
@@ -148,7 +148,7 @@ Only `diskSize` and the memory of `resources` have to be set, everything else ha
 
 ```
 NAME     VERSION   HEALTH   NODES   READY   PHASE
-search   3.8.0     Green    3       True    Running
+search   3.10.1    Green    3       True    Running
 ```
 
 <Properties>
