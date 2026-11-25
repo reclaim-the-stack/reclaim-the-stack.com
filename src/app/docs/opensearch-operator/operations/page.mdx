@@ -28,6 +28,7 @@ To upgrade OpenSearch, change `image` to the new version, eg. from `ghcr.io/recl
 Good to know:
 
 - A cluster without `image` uses the default of the installed operator, so upgrading the operator can upgrade OpenSearch. Set `image` to decide when to upgrade.
+- Not every OpenSearch release comes with a Dashboards release, eg. 3.10.1. Check that `opensearchproject/opensearch-dashboards` has the new version, and otherwise set [`dashboardsImage`](/docs/opensearch-operator/cluster-spec#spec) to the latest Dashboards release of the same minor version, eg. `opensearchproject/opensearch-dashboards:3.10.0`. Without it the new Dashboards pod can't pull its image, and the old one keeps running.
 - OpenSearch Dashboards is upgraded right away, while the nodes are upgraded one at a time. Dashboards refuses to work with nodes on an older minor version, so it's unavailable until the rollout has completed.
 - Downgrades aren't supported by OpenSearch: nodes with data written by a newer version don't start on an older one.
 - Upgrades to a new major version need the usual OpenSearch preparations, eg. reindexing indices created two major versions ago.
